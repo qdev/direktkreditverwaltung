@@ -23,7 +23,7 @@ class InterestProcessorTestCase(TestCase):
     def test_full_year(self):
         ContractVersion.objects.create(
             start=date(2019, 2, 10),
-            duration_years=10,
+            duration_months=120,
             interest_rate=Decimal('0.01'),
             version=1,
             contract=self.contract,
@@ -43,7 +43,7 @@ class InterestProcessorTestCase(TestCase):
     def test_part_year(self):
         ContractVersion.objects.create(
             start=date(2019, 2, 10),
-            duration_years=10,
+            duration_months=120,
             interest_rate=Decimal('0.01'),
             version=1,
             contract=self.contract,
@@ -64,7 +64,7 @@ class InterestProcessorTestCase(TestCase):
     def test_part_year_with_contract_change(self):
         ContractVersion.objects.create(
             start=date(2019, 2, 10),
-            duration_years=10,
+            duration_months=120,
             interest_rate=Decimal('0.01'),
             version=1,
             contract=self.contract,
@@ -85,7 +85,7 @@ class InterestProcessorTestCase(TestCase):
     def test_added_amount_in_year(self):
         ContractVersion.objects.create(
             start=date(2019, 2, 10),
-            duration_years=10,
+            duration_months=120,
             interest_rate=Decimal('0.01'),
             version=1,
             contract=self.contract,
@@ -111,7 +111,7 @@ class InterestProcessorTestCase(TestCase):
     def test_contract_change_in_year(self):
         ContractVersion.objects.create(
             start=date(2019, 2, 10),
-            duration_years=10,
+            duration_months=120,
             interest_rate=Decimal('0.01'),
             version=1,
             contract=self.contract,
@@ -123,7 +123,7 @@ class InterestProcessorTestCase(TestCase):
         )
         ContractVersion.objects.create(
             start=date(2020, 7, 1),
-            duration_years=10,
+            duration_months=120,
             interest_rate=Decimal('0.005'),
             version=2,
             contract=self.contract,

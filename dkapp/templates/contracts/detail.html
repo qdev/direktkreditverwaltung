@@ -36,9 +36,10 @@ Start, Laufzeit und Zinssatz der <i>letzen Version</i> des Vertrags
 </div>
 
 <div>
-  <b>Laufzeit in Jahren:</b>
-  {{contract.last_version.duration_years | default_if_none:'-'}}
+  <b>Kündigungsfrist in Monaten:</b>
+  {{contract.last_version.cancellation_months | default_if_none:'-'}}
 </div>
+
 
 <div>
   <b>Zinssatz:</b>

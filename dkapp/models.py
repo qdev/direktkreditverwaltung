@@ -117,7 +117,7 @@ class Contract(models.Model):
 class ContractVersion(models.Model):
     start = models.DateField()
     duration_months = models.IntegerField(null=True, blank=True)
-    duration_years = models.IntegerField(null=True, blank=True)
+    cancellation_months = models.IntegerField(null=True, blank=True)
     interest_rate = models.DecimalField(max_digits=5, decimal_places=4)
     version = models.IntegerField()
     contract = models.ForeignKey(Contract, on_delete=models.CASCADE)

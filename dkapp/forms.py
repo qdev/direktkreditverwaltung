@@ -29,18 +29,18 @@ class ContractForm(forms.ModelForm):
     # creating a contract.
     start = forms.DateField(
         input_formats=['%d.%m.%Y'],
-        label="Start des Vertrags (letzte Version des Vertrags)"
+        label="Start des Vertrags"
     )
     duration_months = forms.IntegerField(
         required=False,
-        label="Laufzeit in Monaten (letzte Version des Vertrags)"
+        label="Laufzeit in Monaten"
     )
-    duration_years = forms.IntegerField(
+    cancellation_months = forms.IntegerField(
         required=False,
-        label=" * ODER * Laufzeit in Jahren (letzte Version des Vertrags)",
+        label="Kündigungsfrist",
     )
     interest_rate = forms.FloatField(
-        label="Zinssatz (Angabe in Prozent, letzte Version des Vertrags)"
+        label="Zinssatz (Angabe in Prozent)"
     )
 
     class Meta:
@@ -69,7 +69,7 @@ class ContractForm(forms.ModelForm):
         if contract_version:
             self.fields['start'].initial = contract_version.start
             self.fields['duration_months'].initial = contract_version.duration_months
-            self.fields['duration_years'].initial = contract_version.duration_years
+            self.fields['cancellation_months'].initial = contract_version.cancellation_months
             self.fields['interest_rate'].initial = contract_version.interest_rate * 100
 
     def save(self, commit=True):
@@ -80,7 +80,7 @@ class ContractForm(forms.ModelForm):
             contract_version = contract.last_version
             contract_version.start = self.cleaned_data['start']
             contract_version.duration_months = self.cleaned_data['duration_months']
-            contract_version.duration_years = self.cleaned_data['duration_years']
+            contract_version.cancellation_months = self.cleaned_data['cancellation_months']
             contract_version.interest_rate = self.cleaned_data['interest_rate'] / 100.0
         else:
             # create new contract - we need to create the first contract
@@ -89,11 +89,11 @@ class ContractForm(forms.ModelForm):
                 contract_id=contract.id,
                 start=self.cleaned_data['start'],
                 duration_months=self.cleaned_data['duration_months'],
-                duration_years=self.cleaned_data['duration_years'],
+                cancellation_months=self.cleaned_data['cancellation_months'],
                 interest_rate=self.cleaned_data['interest_rate'] / 100.0,
                 version=1,  # first version of contract
             )
-        if contract_version and (contract_version.duration_years or contract_version.duration_months):
+        if contract_version and (contract_version.duration_months or contract_version.cancellation_months):
             contract_version.save()
 
         return contract
@@ -110,12 +110,12 @@ class ContractVersionForm(forms.ModelForm):
         widgets = {
             'start': forms.DateInput(format='%d.%m.%Y'),
             'duration_months': forms.NumberInput(),
-            'duration_years': forms.NumberInput(),
+            'cancellation_months': forms.NumberInput(),
         }
         labels = {
             'start': "Start der Vertragsversion",
             'duration_months': "Laufzeit in Monaten",
-            'duration_years': " * ODER * Laufzeit in Jahren",
+            'cancellation_months': "Kündigungsfrist",
             'contract': "Vertrag",
         }
 

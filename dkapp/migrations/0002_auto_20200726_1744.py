@@ -57,7 +57,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterField(
             model_name='contractversion',
-            name='duration_years',
+            name='cancellation_months',
             field=models.IntegerField(blank=True),
         ),
     ]

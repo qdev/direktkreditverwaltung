@@ -56,7 +56,7 @@ class Command(BaseCommand):
                 id=row['id'],
                 start=parse_date(row['start']),
                 duration_months=row['duration_months'],
-                duration_years=row['duration_years'],
+                cancellation_months=row['cancellation_months'],
                 interest_rate=row['interest_rate'],
                 version=row['version'],
                 contract=Contract.objects.get(pk=row['contract_id']),

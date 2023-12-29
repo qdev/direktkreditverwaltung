@@ -11,21 +11,21 @@ class ContractTestCase(TestCase):
         self.contract = baker.make('dkapp.Contract')
         self.contract_version1 = ContractVersion.objects.create(
             start=date(2019, 2, 10),
-            duration_years=2,
+            duration_months=120,
             interest_rate=Decimal('0.01'),
             version=1,
             contract=self.contract,
         )
         self.contract_version2 = ContractVersion.objects.create(
             start=date(2020, 1, 10),
-            duration_years=10,
+            duration_months=120,
             interest_rate=Decimal('0.02'),
             version=2,
             contract=self.contract,
         )
         self.contract_version3 = ContractVersion.objects.create(
             start=date(2020, 3, 31),
-            duration_years=10,
+            duration_months=120,
             interest_rate=Decimal('0.015'),
             version=3,
             contract=self.contract,

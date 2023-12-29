@@ -47,7 +47,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('start', models.DateTimeField()),
                 ('duration_months', models.IntegerField()),
-                ('duration_years', models.IntegerField()),
+                ('cancellation_months', models.IntegerField()),
                 ('interest_rate', models.DecimalField(decimal_places=4, max_digits=5)),
                 ('version', models.IntegerField()),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
