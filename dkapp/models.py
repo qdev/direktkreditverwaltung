@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime, timedelta
 from decimal import Decimal
 from typing import Optional
 from datetime import date
@@ -6,6 +7,8 @@ from dateutil.relativedelta import relativedelta
 
 from django.utils import timezone
 from django.db import models
+
+from dkapp.operations.interest import days360_eu
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -62,15 +65,58 @@ class Contract(models.Model):
 
     @property
     def balance(self):
-        return self.balance_on(timezone.now())
+        return self.balance_on(timezone.now()) + self.prev_interest(timezone.now())
 
     def balance_on(self, date):
         """Account balance for given date"""
         return self.accountingentry_set.filter(
-            date__lte=date
+            date__lt=date
         ).aggregate(
             models.Sum('amount')
         )['amount__sum'] or Decimal('0')
+
+    def add_fraction(self, d1, d2, amount, rate, compound_interest, fractions):
+        date = d1
+        for d in range(d1.year, (d2).year):
+            days = days360_eu(date, datetime(d, 12, 31))
+            fractions.append((days, amount, rate))
+            if compound_interest:
+                amount += amount * float(rate) * days / 360
+            date = datetime(d, 12, 31)
+        days = days360_eu(date, d2)
+        # if compound_interest:
+        #     amount += amount * float(rate) * days / 360
+        fractions.append((days, amount, rate))
+        return amount
+
+    def prev_interest(self, until):
+
+        accountingentries = list(self.accountingentry_set.filter(date__lte=until).order_by('date'))
+        contractversions = list(self.contractversion_set.filter(start__lte=until).order_by('start'))
+        if not contractversions or contractversions[0].start.year >= until.year:
+            return None
+
+        amount = 0.0
+        rate = contractversions[0].interest_rate
+
+        year = contractversions[0].start.year
+        if accountingentries:
+            year = min(year, accountingentries[0].date.year)
+        date = datetime(year, 1, 1)
+        fractions = []
+
+        while accountingentries or contractversions:
+            if contractversions and (not accountingentries or contractversions[0].start < accountingentries[0].date):
+                amount = self.add_fraction(date, contractversions[0].start, amount, rate, True, fractions)
+                rate = contractversions[0].interest_rate
+                date = contractversions.pop(0).start
+            else:
+                amount = self.add_fraction(date, accountingentries[0].date, amount, rate, True, fractions)
+                amount += float(accountingentries[0].amount)
+                date = accountingentries.pop(0).date
+        self.add_fraction(date, until - timedelta(days=1), amount, rate, True, fractions)
+
+        return Decimal(sum([x[0] * x[1] * float(x[2]) / 360 for x in fractions]))
 
     def versions_in(self, year):
         return self.contractversion_set.filter(start__year=year).order_by('start')

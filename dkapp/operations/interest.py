@@ -27,7 +27,11 @@ class InterestProcessor:
         return sum([row.interest for row in self.calculation_rows])
 
     def calculate_rows(self):
-        interest_rows = [self._saldo_row()]
+        prev_interest_row = self._prev_interest_row()
+        if prev_interest_row:
+            interest_rows = [self._saldo_row(), prev_interest_row]
+        else:
+            interest_rows = [self._saldo_row()]
         accounting_entries = self.contract.accounting_entries_in(self.year)
         for entry in accounting_entries:
             interest_rows.append(self._accounting_row(entry))
@@ -65,8 +69,28 @@ class InterestProcessor:
             interest=interest_for_year,
         )
 
+    def _prev_interest_row(self):
+
+        prev_interest = self.contract.prev_interest(self.start_date)
+        if prev_interest is None:
+            return None
+
+        interest_rate = self.contract.interest_rate_on(self.start_date)
+        interest_for_year = round(prev_interest * interest_rate, 2)
+
+        return InterestDataRow(
+            date=self.start_date,
+            label="Zinsen Vorjahre",
+            amount=prev_interest,
+            interest_rate=interest_rate,
+            days_left_in_year=360,
+            fraction_of_year=1,
+            interest=interest_for_year,
+        )
+
     def _accounting_row(self, accounting_entry):
         days_left, fraction_year = self._days_fraction_360(accounting_entry.date)
+
         interest_rate = self.contract.interest_rate_on(accounting_entry.date)
         interest = round(accounting_entry.amount * fraction_year * interest_rate, 2)
         return InterestDataRow(
@@ -107,7 +131,7 @@ class InterestProcessor:
 
     def _days_fraction_360(self, date):
         days_left = days360_eu(date, self.end_date)
-        fraction = Decimal(days_left/360)
+        fraction = Decimal(days_left / 360)
         return days_left, fraction
 
 
