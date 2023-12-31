@@ -131,6 +131,7 @@ class InterestProcessor:
 
     def _days_fraction_360(self, date):
         days_left = days360_eu(date, self.end_date)
+        days_left += 1  # 2n40-Hack
         fraction = Decimal(days_left / 360)
         return days_left, fraction
 

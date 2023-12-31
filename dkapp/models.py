@@ -114,7 +114,8 @@ class Contract(models.Model):
                 amount = self.add_fraction(date, accountingentries[0].date, amount, rate, True, fractions)
                 amount += float(accountingentries[0].amount)
                 date = accountingentries.pop(0).date
-        self.add_fraction(date, until - timedelta(days=1), amount, rate, True, fractions)
+        self.add_fraction(date, until, amount, rate, True, fractions)
+        # 2n40-Hack: self.add_fraction(date, until - timedelta(days=1), amount, rate, True, fractions)
 
         return Decimal(sum([x[0] * x[1] * float(x[2]) / 360 for x in fractions]))
 
