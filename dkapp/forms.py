@@ -42,6 +42,11 @@ class ContractForm(forms.ModelForm):
     interest_rate = forms.FloatField(
         label="Zinssatz (Angabe in Prozent)"
     )
+    interest_type = forms.ChoiceField(
+        label="Art der Zinsrechnung",
+        choices=[('Auszahlen', 'Auszahlen'), ('ohne Zinseszins', 'ohne Zinseszins'),
+                 ('mit Zinseszins', 'mit Zinseszins')]
+    )
 
     class Meta:
         model = Contract
@@ -55,6 +60,7 @@ class ContractForm(forms.ModelForm):
             "contact": "Kontakt/Vertragspartner_in",
             "comment": "Bemerkung",
             "category": "Kategorie",
+            "interest_type": "Art der Zinsrechnung",
         }
 
     def __init__(self, *args, **kwargs):
@@ -71,6 +77,7 @@ class ContractForm(forms.ModelForm):
             self.fields['duration_months'].initial = contract_version.duration_months
             self.fields['cancellation_months'].initial = contract_version.cancellation_months
             self.fields['interest_rate'].initial = contract_version.interest_rate * 100
+            self.fields['interest_type'].initial = contract_version.interest_type
 
     def save(self, commit=True):
         contract = super(ContractForm, self).save(commit=commit)
@@ -82,6 +89,7 @@ class ContractForm(forms.ModelForm):
             contract_version.duration_months = self.cleaned_data['duration_months']
             contract_version.cancellation_months = self.cleaned_data['cancellation_months']
             contract_version.interest_rate = self.cleaned_data['interest_rate'] / 100.0
+            contract_version.interest_type = self.cleaned_data['interest_type']
         else:
             # create new contract - we need to create the first contract
             # version
@@ -91,6 +99,7 @@ class ContractForm(forms.ModelForm):
                 duration_months=self.cleaned_data['duration_months'],
                 cancellation_months=self.cleaned_data['cancellation_months'],
                 interest_rate=self.cleaned_data['interest_rate'] / 100.0,
+                interest_type=self.cleaned_data['interest_type'],
                 version=1,  # first version of contract
             )
         if contract_version and (contract_version.duration_months or contract_version.cancellation_months):

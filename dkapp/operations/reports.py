@@ -24,6 +24,7 @@ class AverageInterestRateReport:
                 balance=balance,
                 fraction_credit=(fraction:=balance/sum_credit),
                 interest_rate=(interest_rate:=contract.last_version.interest_rate),
+                interest_type=(interest_type:=contract.last_version.interest_type),
                 relative_interest_rate=interest_rate * fraction,
                 ) for contract in contracts if (balance:=contract.balance) > 0
         ]

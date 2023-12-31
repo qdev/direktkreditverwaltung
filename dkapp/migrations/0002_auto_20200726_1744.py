@@ -60,4 +60,9 @@ class Migration(migrations.Migration):
             name='cancellation_months',
             field=models.IntegerField(blank=True),
         ),
+        migrations.AlterField(
+            model_name='contractversion',
+            name='interest_type',
+            field=models.CharField(choices=[('Auszahlen', 'Auszahlen'), ('ohne Zinseszins', 'ohne Zinseszins'), ('mit Zinseszins', 'mit Zinseszins')], max_length=200),
+        ),
     ]

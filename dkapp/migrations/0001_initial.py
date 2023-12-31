@@ -49,6 +49,7 @@ class Migration(migrations.Migration):
                 ('duration_months', models.IntegerField()),
                 ('cancellation_months', models.IntegerField()),
                 ('interest_rate', models.DecimalField(decimal_places=4, max_digits=5)),
+                ('interest_type', models.CharField(max_length=200)),
                 ('version', models.IntegerField()),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),

@@ -34,6 +34,7 @@ Verträge mit Kontostand 0 werden nicht angezeigt.
     <td>{{ last_version.duration_months | default_if_none:'-'}}</td>
     <td>{{ last_version.cancellation_months | default_if_none:'-'}}</td>
     <td>{{ last_version.interest_rate | fraction }}</td>
+    <td>{{ last_version.interest_type}}</td>
     <td>{{ contract.balance | euro }}</td>
     <td><a href="{% url 'dkapp:contract' contract.id %}">Anzeigen</a></td>
   </tr>

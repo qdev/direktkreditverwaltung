@@ -55,7 +55,7 @@ class InterestProcessor:
 
     def _saldo_row(self):
         start_balance = self.contract.balance_on(self.start_date)
-        interest_rate = self.contract.interest_rate_on(self.start_date)
+        interest_rate, interest_type = self.contract.interest_rate_on(self.start_date)
         interest_for_year = round(start_balance * interest_rate, 2)
 
         return InterestDataRow(
@@ -73,22 +73,23 @@ class InterestProcessor:
         if prev_interest is None:
             return None
 
-        interest_rate = self.contract.interest_rate_on(self.start_date)
+        interest_rate, interest_type = self.contract.interest_rate_on(self.start_date)
         interest_for_year = round(prev_interest * interest_rate, 2)
+        ci = interest_type == 'mit Zinseszins'
 
         return InterestDataRow(
             date=self.start_date,
             label="Zinsen Vorjahre",
             amount=prev_interest,
-            interest_rate=interest_rate,
+            interest_rate=interest_rate if ci else 0,
             days_left_in_year=360,
-            interest=interest_for_year,
+            interest=interest_for_year if ci else 0,
         )
 
     def _accounting_row(self, accounting_entry):
         days_left, fraction_year = self._days_fraction_360(accounting_entry.date)
 
-        interest_rate = self.contract.interest_rate_on(accounting_entry.date)
+        interest_rate, interest_type = self.contract.interest_rate_on(accounting_entry.date)
         interest = round(accounting_entry.amount * fraction_year * interest_rate, 2)
         return InterestDataRow(
             date=accounting_entry.date,

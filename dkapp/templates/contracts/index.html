@@ -32,6 +32,7 @@ Start, Laufzeit und Zinssatz sind aus der letzten Version des Vertrags.
     <th>Laufzeit in Monaten</th>
     <th>Kündigungsfrist in Monaten</th>  
     <th>Zinssatz</th>
+    <th>Art der Zinsrechnung</th>
     <th>Kategorie</th>
     <th>Bemerkung</th>
     <th></th>
@@ -47,6 +48,7 @@ Start, Laufzeit und Zinssatz sind aus der letzten Version des Vertrags.
       <td>{{contract.last_version.duration_months | default_if_none:'-'}}</td>
       <td>{{contract.last_version.cancellation_months | default_if_none:'-'}}</td>
       <td>{{contract.last_version.interest_rate | fraction}}</td>
+      <td>{{contract.last_version.interest_type}}</td>
       <td>{{contract.category}}</td>
       <td>{{contract.comment}}</td>
       <td><a href="{% url 'dkapp:contract' contract.id %}">Anzeigen</a></td>

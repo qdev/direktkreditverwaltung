@@ -58,6 +58,7 @@ class Command(BaseCommand):
                 duration_months=row['duration_months'],
                 cancellation_months=row['cancellation_months'],
                 interest_rate=row['interest_rate'],
+                interest_type=row['interest_type'],
                 version=row['version'],
                 contract=Contract.objects.get(pk=row['contract_id']),
                 created_at=pytz.timezone(settings.TIME_ZONE).localize(parse_datetime(row['created_at'])),

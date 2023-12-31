@@ -78,14 +78,12 @@ class Contract(models.Model):
     def add_fraction(self, d1, d2, amount, rate, compound_interest, fractions):
         date = d1
         for d in range(d1.year, (d2).year):
-            days = days360_eu(date, datetime(d, 12, 31))
+            days = days360_eu(date, datetime(d+1, 1, 1))
             fractions.append((days, amount, rate))
             if compound_interest:
                 amount += amount * float(rate) * days / 360
-            date = datetime(d, 12, 31)
+            date = datetime(d+1, 1, 1)
         days = days360_eu(date, d2)
-        # if compound_interest:
-        #     amount += amount * float(rate) * days / 360
         fractions.append((days, amount, rate))
         return amount
 
@@ -104,19 +102,23 @@ class Contract(models.Model):
             year = min(year, accountingentries[0].date.year)
         date = datetime(year, 1, 1)
         fractions = []
+        compound_interest = False
+        interest_type = ""
 
         while accountingentries or contractversions:
             if contractversions and (not accountingentries or contractversions[0].start < accountingentries[0].date):
-                amount = self.add_fraction(date, contractversions[0].start, amount, rate, True, fractions)
+                amount = self.add_fraction(date, contractversions[0].start, amount, rate, compound_interest, fractions)
+                compound_interest = contractversions[0].interest_type == "mit Zinseszins"
                 rate = contractversions[0].interest_rate
                 date = contractversions.pop(0).start
             else:
-                amount = self.add_fraction(date, accountingentries[0].date, amount, rate, True, fractions)
+                amount = self.add_fraction(date, accountingentries[0].date, amount, rate, compound_interest, fractions)
                 amount += float(accountingentries[0].amount)
                 date = accountingentries.pop(0).date
-        self.add_fraction(date, until, amount, rate, True, fractions)
+        self.add_fraction(date, until, amount, rate, compound_interest, fractions)
         # 2n40-Hack: self.add_fraction(date, until - timedelta(days=1), amount, rate, True, fractions)
 
+        print(fractions)
         return Decimal(sum([x[0] * x[1] * float(x[2]) / 360 for x in fractions]))
 
     def versions_in(self, year):
@@ -135,7 +137,7 @@ class Contract(models.Model):
         versions = self.contractversion_set.order_by('-start')
         for version in versions:
             if version.start <= date:
-                return version.interest_rate
+                return version.interest_rate, version.interest_type
 
         logger.error("date before start date of first contract version. Returning interest_rate = 0")
         return Decimal('0')
@@ -162,10 +164,16 @@ class Contract(models.Model):
 
 
 class ContractVersion(models.Model):
+    class Type(models.TextChoices):
+        AUSZAHLEN = 'Auszahlen'
+        OHNE_ZZ = 'ohne Zinseszins'
+        MIT_ZZ = 'mit Zinseszins'
+
     start = models.DateField()
     duration_months = models.IntegerField(null=True, blank=True)
     cancellation_months = models.IntegerField(null=True, blank=True)
     interest_rate = models.DecimalField(max_digits=5, decimal_places=4)
+    interest_type = models.CharField(max_length=200, choices=Type.choices)
     version = models.IntegerField()
     contract = models.ForeignKey(Contract, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
