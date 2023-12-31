@@ -54,7 +54,6 @@
       <th>Betrag</th>
       <th>Zinssatz</th>
       <th>verbleibende Tage im Jahr</th>
-      <th>verbleibender Anteil am Jahr</th>
       <th>Zinsen</th>
     </tr>
     {% for row in data.interest_rows %}
@@ -64,7 +63,6 @@
       <td>{{ row.amount | euro }}</td>
       <td>{{ row.interest_rate | fraction }}</td>
       <td>{{ row.days_left_in_year }}</td>
-      <td>{{ row.fraction_of_year | fraction }}</td>
       <td>{{ row.interest | euro }}</td>
     </tr>
   {% endfor %}

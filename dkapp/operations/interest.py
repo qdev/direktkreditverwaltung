@@ -10,7 +10,6 @@ class InterestDataRow:
     amount: Decimal
     interest_rate: Decimal
     days_left_in_year: int
-    fraction_of_year: Decimal
     interest: float
 
 
@@ -65,7 +64,6 @@ class InterestProcessor:
             amount=start_balance,
             interest_rate=interest_rate,
             days_left_in_year=360,
-            fraction_of_year=1,
             interest=interest_for_year,
         )
 
@@ -84,7 +82,6 @@ class InterestProcessor:
             amount=prev_interest,
             interest_rate=interest_rate,
             days_left_in_year=360,
-            fraction_of_year=1,
             interest=interest_for_year,
         )
 
@@ -99,7 +96,6 @@ class InterestProcessor:
             amount=accounting_entry.amount,
             interest_rate=interest_rate,
             days_left_in_year=days_left,
-            fraction_of_year=fraction_year,
             interest=interest,
         )
 
@@ -115,7 +111,6 @@ class InterestProcessor:
                 amount=-change_balance,
                 interest_rate=old_interest_rate,
                 days_left_in_year=days_left,
-                fraction_of_year=fraction_year,
                 interest=interest_before,
             ),
             InterestDataRow(
@@ -124,7 +119,6 @@ class InterestProcessor:
                 amount=change_balance,
                 interest_rate=contract_version.interest_rate,
                 days_left_in_year=days_left,
-                fraction_of_year=fraction_year,
                 interest=interest_after
             )
         ]

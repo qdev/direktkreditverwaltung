@@ -19,7 +19,6 @@ INTEREST_TABLE_HEADERS = [
     "Betrag",
     "Zinssatz",
     "verbleibende Tage im Jahr",
-    "verbleibender Anteil am Jahr",
     "Zinsen",
 ]
 
@@ -61,7 +60,6 @@ def interest_year_table(rows: List[InterestDataRow], narrow=False):
                 Paragraph(euro(row.amount), styleTableN),
                 Paragraph(fraction(row.interest_rate), styleTableN),
                 Paragraph(str(row.days_left_in_year), styleTableN),
-                Paragraph(fraction(row.fraction_of_year), styleTableN),
                 Paragraph(euro(row.interest), styleTableN),
             ]
             for row in rows
