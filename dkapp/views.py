@@ -143,7 +143,7 @@ class ContractsInterest(generic.TemplateView):
                 'today': datetime.now().strftime('%d.%m.%Y'),
                 'current_year': year,
                 'current_format': format,
-                'all_years': list(range(this_year, this_year-10, -1)),
+                'all_years': list(range(this_year, 2012, -1)),
                 'all_formats': self.OUTPUT_FORMATS,
                 'report': report,
             })
