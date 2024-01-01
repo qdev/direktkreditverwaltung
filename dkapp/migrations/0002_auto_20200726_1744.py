@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('dkapp', '0001_initial'),
     ]
@@ -48,7 +47,8 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='contract',
             name='category',
-            field=models.CharField(choices=[('Privat', 'Privat'), ('Syndikat', 'Syndikat'), ('Dritte', 'Dritte')], max_length=200),
+            field=models.CharField(choices=[('Privat', 'Privat'), ('Syndikat', 'Syndikat'), ('Dritte', 'Dritte')],
+                                   max_length=200),
         ),
         migrations.AlterField(
             model_name='contract',
@@ -68,6 +68,11 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='contractversion',
             name='interest_type',
-            field=models.CharField(choices=[('Auszahlen', 'Auszahlen'), ('ohne Zinseszins', 'ohne Zinseszins'), ('mit Zinseszins', 'mit Zinseszins')], max_length=200),
+            field=models.CharField(
+                choices=[('ohne Zinseszins', 'ohne Zinseszins'), ('mit Zinseszins', 'mit Zinseszins'),
+                         ('direkte Auszahlung', 'direkte Auszahlung'),
+                         ('ohne Zinseszins, Inflationlimit', 'ohne Zinseszins, Inflationlimit'),
+                         ('mit Zinseszins, Inflationlimit', 'mit Zinseszins, Inflationlimit'),
+                         ('direkte Auszahlung, Inflationlimit', 'direkte Auszahlung, Inflationlimit')], max_length=200),
         ),
     ]

@@ -74,12 +74,14 @@ class InterestProcessor:
             return None
 
         interest_rate, interest_type = self.contract.interest_rate_on(self.start_date)
+        if interest_type.startswith('direkte Auszahlung'):
+            return None
         interest_for_year = round(prev_interest * interest_rate, 2)
-        ci = interest_type == 'mit Zinseszins'
+        ci = interest_type.startswith('mit Zinseszins')
 
         return InterestDataRow(
             date=f"Übertrag aus {self.start_date.year - 1}",
-            label="Bisherige Zinsen",
+            label="Zinsen aus den Vorjahren",
             amount=prev_interest,
             interest_rate=interest_rate if ci else 0,
             days_left_in_year=360,

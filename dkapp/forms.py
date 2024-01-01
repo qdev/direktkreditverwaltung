@@ -46,8 +46,8 @@ class ContractForm(forms.ModelForm):
     )
     interest_type = forms.ChoiceField(
         label="Art der Zinsrechnung",
-        choices=[('Auszahlen', 'Auszahlen'), ('ohne Zinseszins', 'ohne Zinseszins'),
-                 ('mit Zinseszins', 'mit Zinseszins')]
+        choices=[('ohne Zinseszins', 'ohne Zinseszins'), ('mit Zinseszins', 'mit Zinseszins'), ('direkte Auszahlung', 'direkte Auszahlung'),
+                 ('ohne Zinseszins, Inflationlimit', 'ohne Zinseszins, Inflationlimit'), ('mit Zinseszins, Inflationlimit', 'mit Zinseszins, Inflationlimit'), ('direkte Auszahlung, Inflationlimit', 'direkte Auszahlung, Inflationlimit')]
     )
 
     class Meta:
