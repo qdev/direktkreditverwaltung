@@ -55,7 +55,7 @@ def interest_year_table(rows: List[InterestDataRow], narrow=False):
     return Table(
         [header_row, *[
             [
-                Paragraph(row.date.strftime('%d.%m.%Y'), styleTableN),
+                Paragraph(row.date, styleTableN),
                 Paragraph(row.label, styleTableN),
                 Paragraph(euro(row.amount), styleTableN),
                 Paragraph(fraction(row.interest_rate), styleTableN),

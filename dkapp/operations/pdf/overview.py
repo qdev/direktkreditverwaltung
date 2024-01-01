@@ -39,7 +39,7 @@ class OverviewGenerator:
 
         story.append(Paragraph(f"Zinsen für das Jahr {year}", styleH1))
         for data in report.per_contract_data:
-            story.append(Paragraph(f"Direktkreditvertrag Nr. {data.contract.number}, {data.contract.contact}", styleH2))
+            story.append(Paragraph(f"Direktkreditvertrag {data.contract.contact.number:04d}-{data.contract.number:02d} ({data.contract.contact})", styleH2))
             story.append(Paragraph(f"Kontostand {today}: {euro(data.contract.balance)}", styleB))
             story.append(Paragraph(f"Zinsberechung {year}:", styleB))
             story.append(interest_year_table(data.interest_rows))

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load my_filters %}
-{% block title %}Direktkreditvertrag {{contract.number}}{% endblock %}
+{% block title %}Direktkreditvertrag {{contract.contact.number|stringformat:"04d"}}-{{contract.number|stringformat:"02d"}}{% endblock %}
 
 {% block content %}
 
@@ -12,7 +12,7 @@ Start, Laufzeit und Zinssatz der <i>letzen Version</i> des Vertrags
 
 <div>
   <b>Nummer:</b>
-  {{contract.number}}
+  {{contract.contact.number|stringformat:"04d"}}-{{contract.number|stringformat:"02d"}}
 </div>
 
 <div>

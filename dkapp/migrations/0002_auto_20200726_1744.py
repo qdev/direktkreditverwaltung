@@ -22,6 +22,11 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterField(
             model_name='contact',
+            name='number',
+            field=models.IntegerField(),
+        ),
+        migrations.AlterField(
+            model_name='contact',
             name='email',
             field=models.CharField(blank=True, max_length=200),
         ),

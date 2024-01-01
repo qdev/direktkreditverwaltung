@@ -10,6 +10,7 @@
 {% if contacts %}
     <table class='table table-striped'>
       <tr>
+        <th>Nummer</th>
         <th>Name</th>
         <th>Vorname</th>
         <th>Adresse</th>
@@ -25,6 +26,7 @@
 
       {% for contact in contacts %}
           <tr>
+              <td>{{contact.number|stringformat:"04d"}}</td>
               <td>{{contact.last_name}}</td>
               <td>{{contact.first_name}}</td>
               <td>{{contact.address}}</td>

@@ -5,7 +5,7 @@ from decimal import Decimal
 
 @dataclass
 class InterestDataRow:
-    date: date
+    date: str
     label: str
     amount: Decimal
     interest_rate: Decimal
@@ -59,7 +59,7 @@ class InterestProcessor:
         interest_for_year = round(start_balance * interest_rate, 2)
 
         return InterestDataRow(
-            date=self.start_date,
+            date=f"Übertrag aus {self.start_date.year - 1}",
             label="Saldo",
             amount=start_balance,
             interest_rate=interest_rate,
@@ -78,8 +78,8 @@ class InterestProcessor:
         ci = interest_type == 'mit Zinseszins'
 
         return InterestDataRow(
-            date=self.start_date,
-            label="Zinsen Vorjahre",
+            date=f"Übertrag aus {self.start_date.year - 1}",
+            label="Bisherige Zinsen",
             amount=prev_interest,
             interest_rate=interest_rate if ci else 0,
             days_left_in_year=360,
@@ -124,8 +124,8 @@ class InterestProcessor:
             )
         ]
 
-    def _days_fraction_360(self, date):
-        days_left = days360_eu(date, self.end_date)
+    def _days_fraction_360(self, end_date):
+        days_left = days360_eu(end_date, self.end_date)
         days_left += 1  # 2n40-Hack
         fraction = Decimal(days_left / 360)
         return days_left, fraction

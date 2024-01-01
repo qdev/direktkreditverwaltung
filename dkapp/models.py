@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 class Contact(models.Model):
+    number = models.IntegerField()
     last_name = models.CharField(max_length=200)
     first_name = models.CharField(max_length=200)
     address = models.CharField(max_length=200)
@@ -53,7 +54,7 @@ class Contract(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"Direktkreditvertrag {self.number} von {self.contact}"
+        return f"{self.contact.number:04d}-{self.number:02d} ({self.contact})"
 
     @property
     def last_version(self):
@@ -78,11 +79,11 @@ class Contract(models.Model):
     def add_fraction(self, d1, d2, amount, rate, compound_interest, fractions):
         date = d1
         for d in range(d1.year, (d2).year):
-            days = days360_eu(date, datetime(d+1, 1, 1))
+            days = days360_eu(date, datetime(d + 1, 1, 1))
             fractions.append((days, amount, rate))
             if compound_interest:
                 amount += amount * float(rate) * days / 360
-            date = datetime(d+1, 1, 1)
+            date = datetime(d + 1, 1, 1)
         days = days360_eu(date, d2)
         fractions.append((days, amount, rate))
         return amount
@@ -140,7 +141,7 @@ class Contract(models.Model):
                 return version.interest_rate, version.interest_type
 
         logger.error("date before start date of first contract version. Returning interest_rate = 0")
-        return Decimal('0')
+        return Decimal('0'), ""
 
     def accounting_entries_in(self, year):
         return self.accountingentry_set.filter(date__year=year).order_by('date')

@@ -16,6 +16,7 @@ class Migration(migrations.Migration):
             name='Contact',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('number', models.IntegerField()),
                 ('last_name', models.CharField(max_length=200)),
                 ('first_name', models.CharField(max_length=200)),
                 ('address', models.CharField(max_length=200)),

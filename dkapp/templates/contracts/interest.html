@@ -42,7 +42,7 @@
 
 {% for data in report.per_contract_data %}
 <div class="mb-5">
-  <h3>Direktkreditvertrag Nr. {{data.contract.number}}, {{data.contact}}</h3>
+  <h3>Direktkreditvertrag {{data.contract.contact.number|stringformat:"04d"}}-{{data.contract.number|stringformat:"02d"}} ({{data.contact}})</h3>
 
   <b>Kontostand {{today}}:</b> {{data.contract.balance | euro}} <br/>
   <br/>

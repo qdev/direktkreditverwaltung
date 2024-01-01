@@ -6,6 +6,11 @@
 {% if error_message %}<div><strong>{{ error_message }}</strong></div>{% endif %}
 
 <div>
+  <b>Nummer:</b>
+  {{contact.number|stringformat:"04d"}}
+</div>
+
+<div>
   <b>Name:</b>
   {{contact.last_name}}
 </div>

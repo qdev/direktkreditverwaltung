@@ -22,6 +22,7 @@ class Command(BaseCommand):
         for row in self.c.execute('SELECT * FROM contacts'):
             contact = Contact(
                 id=row['id'],
+                number=row['number'],
                 first_name=row['prename'],
                 last_name=row['name'],
                 address=row['address'],

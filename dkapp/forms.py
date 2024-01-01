@@ -7,10 +7,12 @@ class ContactForm(forms.ModelForm):
         model = Contact
         exclude = ['updated_at', 'created_at']
         widgets = {
+            'number': forms.NumberInput(),
             'email': forms.EmailInput(),
             'remark': forms.Textarea(),
         }
         labels = {
+            'number': 'Nummer',
             "first_name": "Vorname",
             "last_name": "Nachname",
             "address": "Adresse",
