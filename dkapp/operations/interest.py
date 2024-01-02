@@ -25,6 +25,10 @@ class InterestProcessor:
     def value(self):
         return sum([row.interest for row in self.calculation_rows])
 
+    @property
+    def balance(self):
+        return sum([Decimal(row.interest) + row.amount for row in self.calculation_rows])
+
     def calculate_rows(self):
         prev_interest_row = self._prev_interest_row()
         if prev_interest_row:

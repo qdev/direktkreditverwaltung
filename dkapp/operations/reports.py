@@ -22,11 +22,11 @@ class AverageInterestRateReport:
             FractionPerContract(
                 contract=contract,
                 balance=balance,
-                fraction_credit=(fraction:=balance/sum_credit),
-                interest_rate=(interest_rate:=contract.last_version.interest_rate),
-                interest_type=(interest_type:=contract.last_version.interest_type),
+                fraction_credit=(fraction := balance / sum_credit),
+                interest_rate=(interest_rate := contract.last_version.interest_rate),
+                interest_type=(interest_type := contract.last_version.interest_type),
                 relative_interest_rate=interest_rate * fraction,
-                ) for contract in contracts if (balance:=contract.balance) > 0
+            ) for contract in contracts if (balance := contract.balance) > 0
         ]
         self.avg_interest_rate = sum([data.relative_interest_rate for data in self.per_contract_data])
 
@@ -43,6 +43,7 @@ class InterestPerContract:
     contract: Contract
     contact: Contact
     interest: float
+    balance: float
     interest_rows: List[InterestDataRow]
 
 
@@ -53,9 +54,10 @@ class InterestTransferListReport:
                 contract=contract,
                 contact=contract.contact,
                 interest=interest_processor.value,
+                balance=interest_processor.balance,
                 interest_rows=interest_processor.calculation_rows,
             ) for contract in contracts
-            if (interest_processor:=InterestProcessor(contract, year)).value > 0
+            if len((interest_processor := InterestProcessor(contract, year)).calculation_rows) > 1
         ]
         self.sum_interest = sum([data.interest for data in self.per_contract_data])
 

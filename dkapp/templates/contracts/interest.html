@@ -43,8 +43,6 @@
 {% for data in report.per_contract_data %}
 <div class="mb-5">
   <h3>Direktkreditvertrag {{data.contract.contact.number|stringformat:"04d"}}-{{data.contract.number|stringformat:"02d"}} ({{data.contact}})</h3>
-
-  <b>Kontostand {{today}}:</b> {{data.contract.balance | euro}} <br/>
   <br/>
   <b>Zinsberechnung {{ current_year }}:</b><br/>
   <table class='table'>
@@ -67,7 +65,7 @@
     </tr>
   {% endfor %}
   </table>
-  <br/>
+  <b>Kontostand Ende {{current_year}}:</b> {{data.balance | euro}} <br/>
   <b>Zinsen {{current_year}}: {{ data.interest|euro }}</b><br/>
 </div>
 {% endfor %}
