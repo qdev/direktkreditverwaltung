@@ -1,77 +1,79 @@
 {% extends "base.html" %}
 {% load my_filters %}
-{% block title %}Zinsen für das Jahr {{current_year}}{% endblock %}
+{% block title %}Zinsen für das Jahr {{ current_year }}{% endblock %}
 
 {% block content %}
 
 
-<h2> Zinsen für das Jahr {{current_year}}</h2>
-<h3>Jahr und Ausgabeformat</h3>
+    <h2> Zinsen für das Jahr {{ current_year }}</h2>
+    <h3>Jahr und Ausgabeformat</h3>
 
-<form action="{% url 'dkapp:contracts_interest_filter' %}" method="post">
-  {% csrf_token %}
-  <label>Jahr: </label>
-  <select name='year'>
-    {% for year in all_years %}
-      {% if year == current_year %}
-        <option value={{year}} selected>{{year}}</option>
-      {% else %}
-        <option value={{year}}>{{year}}</option>
-      {% endif %}
+    <form action="{% url 'dkapp:contracts_interest_filter' %}" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="contact_id" value="{{contact_id}}">
+        <label>Jahr: </label>
+        <select name='year'>
+            {% for year in all_years %}
+                {% if year == current_year %}
+                    <option value={{ year }} selected>{{ year }}</option>
+                {% else %}
+                    <option value={{ year }}>{{ year }}</option>
+                {% endif %}
+            {% endfor %}
+        </select>
+        <br/>
+
+        <label>Ausgabe: </label>
+        <select name='format'>
+            <option value="">Variante</option>
+            {% for format_key, format_value in all_formats.items %}
+                {% if format_key == current_format %}
+                    <option value={{ format_key }} selected>{{ format_value }}</option>
+                {% else %}
+                    <option value={{ format_key }}>{{ format_value }}</option>
+                {% endif %}
+            {% endfor %}
+        </select>
+
+        <input class="btn btn-success" type="submit" value="Anzeigen">
+    </form>
+    <br/>
+    {% for data in report.per_contract_data %}
+        {% if not contact_id or contact_id == data.contract.contact.number %}
+            <div class="mb-5">
+                <h3>
+                    Direktkreditvertrag {{ data.contract.contact.number|stringformat:"04d" }}-{{ data.contract.number|stringformat:"02d" }}
+                    ({{ data.contact }})</h3>
+                <br/>
+                <b>Zinsberechnung {{ current_year }}:</b><br/>
+                <table class='table'>
+                    <tr>
+                        <th>Datum</th>
+                        <th>Vorgang</th>
+                        <th>Betrag</th>
+                        <th>Zinssatz</th>
+                        <th>verbleibende Tage im Jahr</th>
+                        <th>Zinsen</th>
+                    </tr>
+                    {% for row in data.interest_rows %}
+                        <tr>
+                            <td>{{ row.date }}</td>
+                            <td>{{ row.label }}</td>
+                            <td>{{ row.amount | euro }}</td>
+                            <td>{{ row.interest_rate | fraction }}</td>
+                            <td>{{ row.days_left_in_year }}</td>
+                            <td>{{ row.interest | euro }}</td>
+                        </tr>
+                    {% endfor %}
+                </table>
+                <b>Kontostand Ende {{ current_year }}:</b> {{ data.balance | euro }} <br/>
+                <b>Zinsen {{ current_year }}: {{ data.interest|euro }}</b><br/>
+            </div>
+        {% endif %}
     {% endfor %}
-  </select>
-  <br/>
 
-  <label>Ausgabe: </label>
-  <select name='format'>
-    <option value="">Variante</option>
-    {% for format_key, format_value in all_formats.items %}
-      {% if format_key == current_format %}
-        <option value={{format_key}} selected>{{format_value}}</option>
-      {% else %}
-        <option value={{format_key}}>{{format_value}}</option>
-      {% endif %}
-    {% endfor %}
-  </select>
-
-  <input class="btn btn-success" type="submit" value="Anzeigen">
-</form>
-
-
-<br/>
-
-{% for data in report.per_contract_data %}
-<div class="mb-5">
-  <h3>Direktkreditvertrag {{data.contract.contact.number|stringformat:"04d"}}-{{data.contract.number|stringformat:"02d"}} ({{data.contact}})</h3>
-  <br/>
-  <b>Zinsberechnung {{ current_year }}:</b><br/>
-  <table class='table'>
-    <tr>
-      <th>Datum</th>
-      <th>Vorgang</th>
-      <th>Betrag</th>
-      <th>Zinssatz</th>
-      <th>verbleibende Tage im Jahr</th>
-      <th>Zinsen</th>
-    </tr>
-    {% for row in data.interest_rows %}
-    <tr>
-      <td>{{ row.date }}</td>
-      <td>{{ row.label }}</td>
-      <td>{{ row.amount | euro }}</td>
-      <td>{{ row.interest_rate | fraction }}</td>
-      <td>{{ row.days_left_in_year }}</td>
-      <td>{{ row.interest | euro }}</td>
-    </tr>
-  {% endfor %}
-  </table>
-  <b>Kontostand Ende {{current_year}}:</b> {{data.balance | euro}} <br/>
-  <b>Zinsen {{current_year}}: {{ data.interest|euro }}</b><br/>
-</div>
-{% endfor %}
-
-<br/>
-<h2>Summe Zinsen</h2>
-<b>{{ report.sum_interest | euro }}</b>
+    <br/>
+    <h2>Summe Zinsen</h2>
+    <b>{{ report.sum_interest | euro }}</b>
 
 {% endblock %}

@@ -39,7 +39,9 @@ class InterestProcessor:
         contract_changes = self.contract.versions_in(self.year)
         if contract_changes:
             old_interest_rate = interest_rows[0].interest_rate
-            old_prev_interest_rate = prev_interest_row.interest_rate
+            old_prev_interest_rate = 0.0
+            if prev_interest_row:
+                old_prev_interest_rate = prev_interest_row.interest_rate
             for contract_change in contract_changes:
                 if contract_change.id == self.contract.first_version.id:
                     continue
@@ -49,16 +51,16 @@ class InterestProcessor:
                     continue
 
                 interest_rows.extend(self._contract_change_rows(contract_change, old_interest_rate))
-                interest_rows.extend(self._contract_change_prev_rows(contract_change, old_prev_interest_rate))
+                if prev_interest_row:
+                    interest_rows.extend(self._contract_change_prev_rows(contract_change, old_prev_interest_rate))
+                    old_prev_interest_rate = contract_change.interest_rate if contract_change.interest_type.startswith('mit Zinseszins') else 0
                 old_interest_rate = contract_change.interest_rate
-                old_prev_interest_rate = contract_change.interest_rate if contract_change.interest_type.startswith(
-                    'mit Zinseszins') else 0
 
         accounting_entries = self.contract.accounting_entries_in(self.year)
         for entry in accounting_entries:
             interest_rows.append(self._accounting_row(entry))
 
-        if self.contract.terminated_at.year == self.year:
+        if self.contract.terminated_at and self.contract.terminated_at.year == self.year:
             interest_rows.extend(self._contract_terminate_rows(interest_rows,self.contract.terminated_at))
 
         return interest_rows
@@ -103,6 +105,9 @@ class InterestProcessor:
 
         interest_rate, interest_type = self.contract.interest_rate_on(accounting_entry.date)
         interest = round(accounting_entry.amount * fraction_year * interest_rate, 2)
+        # if interest<0:
+        #     interest = interest/(1+(1-fraction_year)*interest_rate)
+        #interest -= interest*(1-fraction_year) * interest_rate
         return InterestDataRow(
             date=accounting_entry.date,
             label="Einzahlung" if accounting_entry.amount > 0 else "Auszahlung",

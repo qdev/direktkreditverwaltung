@@ -136,12 +136,15 @@ class ContractsInterest(generic.TemplateView):
         this_year = datetime.now().year
         year = int(request.GET.get('year') or this_year)
         format = request.GET.get('format') or OUTPUT_FORMATS_ENUM.HTML.value
+        ci = request.GET.get('contact_id')
+        contact_id = int(ci) if ci else None
         report = InterestTransferListReport.create(year)
         if format == OUTPUT_FORMATS_ENUM.HTML.value:
             return render(request, self.template_name, {
                 'today': datetime.now().strftime('%d.%m.%Y'),
                 'current_year': year,
                 'current_format': format,
+                'contact_id': contact_id,
                 'all_years': list(range(this_year, 2012, -1)),
                 'all_formats': self.OUTPUT_FORMATS,
                 'report': report,
@@ -170,10 +173,10 @@ class ContractsInterest(generic.TemplateView):
     def filter(request):
         year = request.POST.get('year') or datetime.now().year
         format = request.POST.get('format') or 'html'
-        filter_args = {'year': year, 'format': format}
+        contact_id = request.POST.get('contact_id') or ''
+        filter_args = {'year': year, 'format': format, 'contact_id': contact_id}
         filter_query_string = urllib.parse.urlencode(filter_args)
         return HttpResponseRedirect("?".join([reverse('dkapp:contracts_interest'), filter_query_string]))
-
 
 class ContractsInterestTransferListView(generic.TemplateView):
     template_name = 'contracts/interest_transfer_list.html'

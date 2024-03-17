@@ -18,7 +18,7 @@ class Contact(models.Model):
     number = models.IntegerField()
     last_name = models.CharField(max_length=200)
     first_name = models.CharField(max_length=200)
-    address = models.CharField(max_length=200)
+    address = models.CharField(max_length=200, blank=True)
     phone = models.CharField(max_length=200, blank=True)
     email = models.CharField(max_length=200, blank=True)
     iban = models.CharField(max_length=200, blank=True)
