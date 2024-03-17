@@ -56,6 +56,7 @@ class ContractForm(forms.ModelForm):
         widgets = {
             'number': forms.NumberInput(),
             'comment': forms.Textarea(),
+            'terminated_at': forms.DateInput(format='%d.%m.%Y'),
         }
         labels = {
             "number": "Nummer",

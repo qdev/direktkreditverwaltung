@@ -52,6 +52,7 @@ class Contract(models.Model):
     category = models.CharField(max_length=200, choices=Category.choices)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    terminated_at = models.DateField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.contact.number:04d}-{self.number:02d} ({self.contact})"

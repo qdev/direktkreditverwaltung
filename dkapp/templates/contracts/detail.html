@@ -61,6 +61,12 @@ Start, Laufzeit und Zinssatz der <i>letzen Version</i> des Vertrags
   {{contract.comment}}
 </div>
 
+<div>
+  <b>Ende:</b>
+  {{contract.terminated_at | date:"SHORT_DATE_FORMAT"}}
+</div>    
+    
+    
 <br/>
 <div>
     <a href="{% url 'dkapp:contract_edit' contract.id %}">Editieren</a><br/>

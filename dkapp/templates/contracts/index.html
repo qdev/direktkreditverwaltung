@@ -35,6 +35,7 @@ Start, Laufzeit und Zinssatz sind aus der letzten Version des Vertrags.
     <th>Art der Zinsrechnung</th>
     <th>Kategorie</th>
     <th>Bemerkung</th>
+    <th>Ende</th>
     <th></th>
     <th></th>
   </tr>
@@ -51,6 +52,7 @@ Start, Laufzeit und Zinssatz sind aus der letzten Version des Vertrags.
       <td>{{contract.last_version.interest_type}}</td>
       <td>{{contract.category}}</td>
       <td>{{contract.comment}}</td>
+      <td>{{contract.terminated_at}}</td>  
       <td><a href="{% url 'dkapp:contract' contract.id %}">Anzeigen</a></td>
       <td><a href="{% url 'dkapp:contract_edit' contract.id %}">Editieren</a></td>
     </tr>

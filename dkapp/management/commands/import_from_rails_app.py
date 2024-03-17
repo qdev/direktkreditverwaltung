@@ -47,6 +47,7 @@ class Command(BaseCommand):
                 contact=Contact.objects.get(pk=row['contact_id']),
                 created_at=pytz.timezone(settings.TIME_ZONE).localize(parse_datetime(row['created_at'])),
                 updated_at=pytz.timezone(settings.TIME_ZONE).localize(parse_datetime(row['updated_at'])),
+                terminated_at=pytz.timezone(settings.TIME_ZONE).localize(parse_datetime(row['terminated_at'])),
             )
             contact.save()
 

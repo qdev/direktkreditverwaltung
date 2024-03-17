@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from dataclasses import dataclass
 from decimal import Decimal
 
@@ -51,11 +51,16 @@ class InterestProcessor:
                 interest_rows.extend(self._contract_change_rows(contract_change, old_interest_rate))
                 interest_rows.extend(self._contract_change_prev_rows(contract_change, old_prev_interest_rate))
                 old_interest_rate = contract_change.interest_rate
-                old_prev_interest_rate = contract_change.interest_rate if contract_change.interest_type.startswith('mit Zinseszins') else 0
+                old_prev_interest_rate = contract_change.interest_rate if contract_change.interest_type.startswith(
+                    'mit Zinseszins') else 0
 
         accounting_entries = self.contract.accounting_entries_in(self.year)
         for entry in accounting_entries:
             interest_rows.append(self._accounting_row(entry))
+
+        if self.contract.terminated_at.year == self.year:
+            interest_rows.extend(self._contract_terminate_rows(interest_rows,self.contract.terminated_at))
+
         return interest_rows
 
     def _saldo_row(self):
@@ -148,14 +153,36 @@ class InterestProcessor:
                 date=contract_version.start,
                 label="Änderung Vorjahreszins",
                 amount=prev_interest,
-                interest_rate=contract_version.interest_rate if contract_version.interest_type.startswith('mit Zinseszins') else 0,
+                interest_rate=contract_version.interest_rate if contract_version.interest_type.startswith(
+                    'mit Zinseszins') else 0,
                 days_left_in_year=days_left,
-                interest=round(prev_interest * fraction_year * contract_version.interest_rate, 2) if contract_version.interest_type.startswith('mit Zinseszins') else 0,
+                interest=round(prev_interest * fraction_year * contract_version.interest_rate,
+                               2) if contract_version.interest_type.startswith('mit Zinseszins') else 0,
+            )]
+
+    def _contract_terminate_rows(self, interest_rows, terminated_at):
+        days_left, fraction_year = self._days_fraction_360(terminated_at)
+        rest_balance = 0
+        rest_interest = 0
+
+        for i in interest_rows:
+            rest_balance += i.amount + (i.days_left_in_year-days_left)*i.interest/i.days_left_in_year
+            rest_interest += days_left*i.interest/i.days_left_in_year
+        #rest_balance += rest_interest
+
+        return [
+            InterestDataRow(
+                date=terminated_at,
+                label="Vertragsende",
+                amount=Decimal(-rest_balance),
+                interest_rate=Decimal(0),
+                days_left_in_year=days_left,
+                interest=-rest_interest,
             )]
 
     def _days_fraction_360(self, end_date):
         days_left = days360_eu(end_date, self.end_date)
-        #days_left += 1  # 2n40-Hack
+        # days_left += 1  # 2n40-Hack
         fraction = Decimal(days_left / 360)
         return days_left, fraction
 
