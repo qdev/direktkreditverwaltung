@@ -92,52 +92,55 @@ class Contract(models.Model):
         }
         return float(min(rate, infla_dict[year]) if year in infla_dict else rate)
 
-    def add_fraction(self, d1, d2, amount, rate, compound_interest, inflalimit, fractions):
+    def add_fraction(self, d1, d2, amount, pa, rate, compound_interest, inflalimit, fractions):
         date = d1
         for d in range(d1.year, d2.year):
-            days = days360_eu(date, datetime(d + 1, 1, 1))
-            irate = self.infla_limit(rate, d)
-            fractions.append((days, amount, irate if inflalimit else rate))
+            days = days360_eu(date, datetime(d, 12, 31))
+            r = self.infla_limit(rate, d) if inflalimit else float(rate)
+            fractions.append((days, amount, r))
             if compound_interest:
-                amount += amount * irate * days / 360
-            date = datetime(d + 1, 1, 1)
+                amount += pa + amount * r * days / 360
+                pa = 0
+            date = datetime(d, 12, 31)
         days = days360_eu(date, d2)
-        fractions.append((days, amount, self.infla_limit(rate, d2.year) if inflalimit else rate))
-        return amount
+        r = self.infla_limit(rate, d2.year) if inflalimit else float(rate)
+        fractions.append((days, amount, r))
+        pa += amount * r * days / 360
+        return amount, pa
 
     def prev_interest(self, until):
 
         accountingentries = list(self.accountingentry_set.filter(date__lte=until).order_by('date'))
         contractversions = list(self.contractversion_set.filter(start__lte=until).order_by('start'))
-        if not contractversions or contractversions[0].start.year >= until.year:
+        if not contractversions or contractversions[0].start.year > until.year:
             return None
 
         amount = 0.0
+        pa = 0.0
         rate = float(contractversions[0].interest_rate)
 
         year = contractversions[0].start.year
         if accountingentries:
             year = min(year, accountingentries[0].date.year)
-        date = datetime(year, 1, 1)
+        date = datetime(year-1, 12, 31)
         fractions = []
         compound_interest = False
         inflalimit = False
 
         while accountingentries or contractversions:
             if contractversions and (not accountingentries or contractversions[0].start < accountingentries[0].date):
-                amount = self.add_fraction(date, contractversions[0].start, amount, rate, compound_interest, inflalimit,
-                                           fractions)
+                amount, pa = self.add_fraction(date, contractversions[0].start, amount, pa, rate, compound_interest, inflalimit, fractions)
                 compound_interest = contractversions[0].interest_type.startswith("mit Zinseszins")
                 rate = contractversions[0].interest_rate
                 inflalimit = contractversions[0].interest_type.endswith(", Inflationlimit")
                 date = contractversions.pop(0).start
             else:
-                amount = self.add_fraction(date, accountingentries[0].date, amount, rate, compound_interest, inflalimit,
-                                           fractions)
+                amount, pa = self.add_fraction(date, accountingentries[0].date, amount, pa, rate, compound_interest, inflalimit, fractions)
                 amount += float(accountingentries[0].amount)
                 date = accountingentries.pop(0).date
-        self.add_fraction(date, until, amount, rate, compound_interest, inflalimit, fractions)
-        # 2n40-Hack: self.add_fraction(date, until - timedelta(days=1), amount, rate, True, fractions)
+        #self.add_fraction(date, until, amount, rate, compound_interest, inflalimit, fractions)
+        # 2n40-Hack:
+        self.add_fraction(date, until - timedelta(days=1), amount, pa, rate, compound_interest, inflalimit, fractions)
 
         print(fractions)
         print([x[0] * x[1] * float(x[2]) / 360 for x in fractions])
@@ -157,13 +160,12 @@ class Contract(models.Model):
 
     def interest_rate_on(self, date=None):
         versions = self.contractversion_set.order_by('-start')
+        r = Decimal('0'), ""
         for version in versions:
+            r = version.interest_rate, version.interest_type
             if version.start <= date:
-                return Decimal(self.infla_limit(version.interest_rate, date.year)) if version.interest_type.endswith(
-                    ", Inflationlimit") else version.interest_rate, version.interest_type
-
-        logger.error("date before start date of first contract version. Returning interest_rate = 0")
-        return Decimal('0'), ""
+                break
+        return (Decimal(self.infla_limit(r[0], date.year)),r[1]) if r[1].endswith(", Inflationlimit") else r
 
     def accounting_entries_in(self, year):
         return self.accountingentry_set.filter(date__year=year).order_by('date')

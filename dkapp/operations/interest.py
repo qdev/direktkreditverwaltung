@@ -35,26 +35,27 @@ class InterestProcessor:
             interest_rows = [self._saldo_row(), prev_interest_row]
         else:
             interest_rows = [self._saldo_row()]
+
+        contract_changes = self.contract.versions_in(self.year)
+        if contract_changes:
+            old_interest_rate = interest_rows[0].interest_rate
+            old_prev_interest_rate = prev_interest_row.interest_rate
+            for contract_change in contract_changes:
+                if contract_change.id == self.contract.first_version.id:
+                    continue
+                if contract_change.start == self.start_date:
+                    continue
+                if old_interest_rate == contract_change.interest_rate:
+                    continue
+
+                interest_rows.extend(self._contract_change_rows(contract_change, old_interest_rate))
+                interest_rows.extend(self._contract_change_prev_rows(contract_change, old_prev_interest_rate))
+                old_interest_rate = contract_change.interest_rate
+                old_prev_interest_rate = contract_change.interest_rate if contract_change.interest_type.startswith('mit Zinseszins') else 0
+
         accounting_entries = self.contract.accounting_entries_in(self.year)
         for entry in accounting_entries:
             interest_rows.append(self._accounting_row(entry))
-
-        contract_changes = self.contract.versions_in(self.year)
-        if not contract_changes:
-            return interest_rows
-
-        old_interest_rate = interest_rows[0].interest_rate
-        for contract_change in contract_changes:
-            if contract_change.id == self.contract.first_version.id:
-                continue
-            if contract_change.start == self.start_date:
-                continue
-            if old_interest_rate == contract_change.interest_rate:
-                continue
-
-            interest_rows.extend(self._contract_change_rows(contract_change, old_interest_rate))
-            old_interest_rate = contract_change.interest_rate
-
         return interest_rows
 
     def _saldo_row(self):
@@ -130,9 +131,31 @@ class InterestProcessor:
             )
         ]
 
+    def _contract_change_prev_rows(self, contract_version, old_interest_rate):
+        days_left, fraction_year = self._days_fraction_360(contract_version.start)
+        prev_interest = self.contract.prev_interest(self.start_date)
+
+        return [
+            InterestDataRow(
+                date=contract_version.start,
+                label="Änderung Vorjahreszins",
+                amount=-prev_interest,
+                interest_rate=old_interest_rate,
+                days_left_in_year=days_left,
+                interest=round(-prev_interest * fraction_year * old_interest_rate, 2),
+            ),
+            InterestDataRow(
+                date=contract_version.start,
+                label="Änderung Vorjahreszins",
+                amount=prev_interest,
+                interest_rate=contract_version.interest_rate if contract_version.interest_type.startswith('mit Zinseszins') else 0,
+                days_left_in_year=days_left,
+                interest=round(prev_interest * fraction_year * contract_version.interest_rate, 2) if contract_version.interest_type.startswith('mit Zinseszins') else 0,
+            )]
+
     def _days_fraction_360(self, end_date):
         days_left = days360_eu(end_date, self.end_date)
-        days_left += 1  # 2n40-Hack
+        #days_left += 1  # 2n40-Hack
         fraction = Decimal(days_left / 360)
         return days_left, fraction
 
