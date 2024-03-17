@@ -63,7 +63,7 @@ class InterestTransferListReport:
 
     @classmethod
     def create(cls, year):
-        all_contracts = Contract.objects.order_by('number').prefetch_related('contact')
+        all_contracts = Contract.objects.order_by('contact_id', 'number').prefetch_related('contact')
         return cls(year, contracts=all_contracts)
 
 
@@ -97,9 +97,7 @@ class RemainingContractsReport:
             else:
                 self.between_one_and_five.add(contract, balance)
 
-
     @classmethod
     def create(cls, cutoff_date: datetime):
         all_contracts = Contract.objects.order_by('number').prefetch_related('contact')
         return cls(cutoff_date, contracts=all_contracts)
-

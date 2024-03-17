@@ -41,7 +41,7 @@ Start, Laufzeit und Zinssatz sind aus der letzten Version des Vertrags.
 
   {% for contract in contracts %}
     <tr>
-      <td>{{contract.number}}</td>
+      <td>{{contract.contact.number|stringformat:"04d"}}-{{contract.number|stringformat:"02d"}}</td>
       <td>{{contract.contact.full_name}}</td>
       <td>{{contract.balance | euro}}</td>
       <td>{{contract.last_version.start | date:"SHORT_DATE_FORMAT"}}</td>

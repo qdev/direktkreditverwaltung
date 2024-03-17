@@ -139,8 +139,8 @@ class Contract(models.Model):
         self.add_fraction(date, until, amount, rate, compound_interest, inflalimit, fractions)
         # 2n40-Hack: self.add_fraction(date, until - timedelta(days=1), amount, rate, True, fractions)
 
-        #print(fractions)
-        #print([x[0] * x[1] * float(x[2]) / 360 for x in fractions])
+        print(fractions)
+        print([x[0] * x[1] * float(x[2]) / 360 for x in fractions])
         return Decimal(sum([x[0] * x[1] * float(x[2]) / 360 for x in fractions]))
 
     def versions_in(self, year):

@@ -86,7 +86,7 @@ class ContractsView(generic.ListView):
     def get_queryset(self):
         contact_id = self.request.GET.get('contact_id')
         if contact_id is None:
-            return Contract.objects.order_by('number')
+            return Contract.objects.order_by('contact_id', 'number')
         else:
             return Contract.objects.filter(contact_id=contact_id).order_by('number')
 
@@ -105,8 +105,7 @@ class ContractsView(generic.ListView):
         form = ContractForm(contact=contact, contract_version=None)
         return render(request, 'form.html', {
             'form': form,
-            'action_url': reverse('dkapp:contracts')},
-         )
+            'action_url': reverse('dkapp:contracts')},)
 
     def post(self, request):
         form = ContractForm(request.POST, contact=None, contract_version=None)
@@ -118,10 +117,10 @@ class ContractsView(generic.ListView):
 
 
 class OUTPUT_FORMATS_ENUM(Enum):
-    HTML='html'
-    OVERVIEW='overview'
-    THANKS='thanks'
-    LETTER='letter'
+    HTML = 'html'
+    OVERVIEW = 'overview'
+    THANKS = 'thanks'
+    LETTER = 'letter'
 
 
 class ContractsInterest(generic.TemplateView):
@@ -184,7 +183,7 @@ class ContractsInterestTransferListView(generic.TemplateView):
         year = int(request.GET.get('year') or this_year)
         return render(request, self.template_name, {
             'current_year': year,
-            'all_years': list(range(this_year, this_year-10, -1)),
+            'all_years': list(range(this_year, this_year - 10, -1)),
             'report': InterestTransferListReport.create(year),
         })
 
@@ -226,7 +225,7 @@ class ContractsRemainingView(generic.TemplateView):
         return render(request, self.template_name, {
             'current_year': year,
             'cutoff_date': cutoff_date,
-            'all_years': list(range(this_year, this_year-10, -1)),
+            'all_years': list(range(this_year, this_year - 10, -1)),
             'report': RemainingContractsReport.create(cutoff_date),
         })
 
