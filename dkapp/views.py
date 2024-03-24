@@ -1,15 +1,18 @@
+import csv
 import urllib
 from enum import Enum
 from operator import attrgetter
 from datetime import datetime
 
-from django.http import HttpResponseRedirect, FileResponse
+from django.db.models import Q
+from django.http import HttpResponseRedirect, FileResponse, HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.views import generic
 
 from dkapp.models import Contact, Contract, ContractVersion, AccountingEntry
 from dkapp.forms import ContactForm, ContractForm, ContractVersionForm, AccountingEntryForm
+from dkapp.operations.interest import InterestProcessor
 from dkapp.operations.reports import (
     AverageInterestRateReport,
     InterestTransferListReport,
@@ -29,7 +32,7 @@ class ContactsView(generic.ListView):
     context_object_name = 'contacts'
 
     def get_queryset(self):
-        return Contact.objects.order_by('last_name', 'first_name')
+        return Contact.objects.order_by('number')
 
     @staticmethod
     def new(request):
@@ -105,7 +108,7 @@ class ContractsView(generic.ListView):
         form = ContractForm(contact=contact, contract_version=None)
         return render(request, 'form.html', {
             'form': form,
-            'action_url': reverse('dkapp:contracts')},)
+            'action_url': reverse('dkapp:contracts')}, )
 
     def post(self, request):
         form = ContractForm(request.POST, contact=None, contract_version=None)
@@ -137,8 +140,8 @@ class ContractsInterest(generic.TemplateView):
         year = int(request.GET.get('year') or this_year)
         format = request.GET.get('format') or OUTPUT_FORMATS_ENUM.HTML.value
         ci = request.GET.get('contact_id')
-        contact_id = int(ci) if ci else None
-        report = InterestTransferListReport.create(year)
+        contact_id = int(ci) if ci else ''
+        report = InterestTransferListReport.create(year, ci)
         if format == OUTPUT_FORMATS_ENUM.HTML.value:
             return render(request, self.template_name, {
                 'today': datetime.now().strftime('%d.%m.%Y'),
@@ -178,6 +181,7 @@ class ContractsInterest(generic.TemplateView):
         filter_query_string = urllib.parse.urlencode(filter_args)
         return HttpResponseRedirect("?".join([reverse('dkapp:contracts_interest'), filter_query_string]))
 
+
 class ContractsInterestTransferListView(generic.TemplateView):
     template_name = 'contracts/interest_transfer_list.html'
 
@@ -187,7 +191,7 @@ class ContractsInterestTransferListView(generic.TemplateView):
         return render(request, self.template_name, {
             'current_year': year,
             'all_years': list(range(this_year, this_year - 10, -1)),
-            'report': InterestTransferListReport.create(year),
+            'report': InterestTransferListReport.create(year, None),
         })
 
     def post(self, request):
@@ -237,6 +241,7 @@ class ContractsRemainingView(generic.TemplateView):
         return HttpResponseRedirect(
             reverse('dkapp:contracts_remaining') + f"?year={year}"
         )
+
 
 class ContractView(generic.DetailView):
     model = Contract
@@ -362,7 +367,7 @@ class AccountingEntriesView(generic.ListView):
 
     def get_context_data(self, **kwargs):
         context = super(AccountingEntriesView, self).get_context_data(**kwargs)
-        all_contracts = Contract.objects.order_by('number').all()
+        all_contracts = Contract.objects.order_by('contact_id', 'number').all()
         context['all_contracts'] = all_contracts
         contract_id = self.request.GET.get('contract_id')
         if contract_id:
@@ -448,3 +453,25 @@ class AccountingEntryDeleteView(generic.edit.DeleteView):
 
     def get_success_url(self):
         return reverse('dkapp:accounting_entries')
+
+
+class ExportTransferView(generic.View):
+    @staticmethod
+    def get(request, *args, **kwargs):
+        EXPENSE_ACCOUNT_ID = "2 Neutrale Aufwendungen:21 Zinsaufwand:21100 Zinsaufwand Privatdarlehen"
+        CHARGE_OFF_ACCOUNT_ID = "1 Finanzkonten:14 Verbindlichkeiten:14200 Verbindlichkeiten aus Direktdarlehen"
+        year = int(kwargs.get('pk'))
+        contracts = Contract.objects.prefetch_related('contact').filter(Q(terminated_at__isnull=True) | Q(terminated_at__year__gt=year - 1)).order_by('contact__number', 'number')
+        response = HttpResponse(content_type="text/csv", headers={"Content-Disposition": 'attachment; filename="export.csv"'}) if "file" in request.GET else HttpResponse(content_type="text")
+        writer = csv.writer(response, quoting=csv.QUOTE_ALL)
+        c = 0
+        for contract in contracts:
+            ip = InterestProcessor(contract, year)
+            interst = ip.value
+            if interst:
+                c += 1
+                writer.writerow([f"31.12.{year}", f"dk_export_{c:04}", f"Zinsenertrag {year}", contract.contact.creditor_account, EXPENSE_ACCOUNT_ID, round(interst, 2)])
+            for ar in ip.auto_rows:
+                c += 1
+                writer.writerow([f"{ar.date:%d.%m.%Y}" if ar.date else f"31.12.{year}", f"dk_export_{c:04}", ar.label, contract.contact.creditor_account, CHARGE_OFF_ACCOUNT_ID, round(ar.amount, 2)])
+        return response

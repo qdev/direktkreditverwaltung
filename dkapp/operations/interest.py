@@ -19,17 +19,18 @@ class InterestProcessor:
         self.start_date = date(self.year, 1, 1)
         self.end_date = date(self.year, 12, 31)
         self.contract = contract
-        self.calculation_rows = self.calculate_rows()
+        self.calculation_rows,self.auto_rows = self.calculate_rows()
 
     @property
     def value(self):
-        return sum([row.interest for row in self.calculation_rows])
+        return sum([float(row.interest) for row in self.calculation_rows])
 
     @property
     def balance(self):
         return sum([Decimal(row.interest) + row.amount for row in self.calculation_rows])
 
     def calculate_rows(self):
+        interest_rate, interest_type = self.contract.interest_rate_on(self.start_date)
         prev_interest_row = self._prev_interest_row()
         if prev_interest_row:
             interest_rows = [self._saldo_row(), prev_interest_row]
@@ -53,17 +54,26 @@ class InterestProcessor:
                 interest_rows.extend(self._contract_change_rows(contract_change, old_interest_rate))
                 if prev_interest_row:
                     interest_rows.extend(self._contract_change_prev_rows(contract_change, old_prev_interest_rate))
-                    old_prev_interest_rate = contract_change.interest_rate if contract_change.interest_type.startswith('mit Zinseszins') else 0
+                    old_prev_interest_rate = contract_change.interest_rate if contract_change.interest_type.startswith(
+                        'mit Zinseszins') else 0
                 old_interest_rate = contract_change.interest_rate
 
         accounting_entries = self.contract.accounting_entries_in(self.year)
         for entry in accounting_entries:
             interest_rows.append(self._accounting_row(entry))
 
-        if self.contract.terminated_at and self.contract.terminated_at.year == self.year:
-            interest_rows.extend(self._contract_terminate_rows(interest_rows,self.contract.terminated_at))
+        auto_rows = []
+        if interest_type.startswith('direkte Auszahlung'):
+            r = self._payout_row(interest_rows)
+            interest_rows.append(r)
+            auto_rows.append(r)
 
-        return interest_rows
+        if self.contract.terminated_at and self.contract.terminated_at.year == self.year:
+            r = self._contract_terminate_row(interest_rows, self.contract.terminated_at)
+            interest_rows.append(r)
+            auto_rows.append(r)
+
+        return interest_rows, auto_rows
 
     def _saldo_row(self):
         start_balance = self.contract.balance_on(self.start_date)
@@ -107,14 +117,14 @@ class InterestProcessor:
         interest = round(accounting_entry.amount * fraction_year * interest_rate, 2)
         # if interest<0:
         #     interest = interest/(1+(1-fraction_year)*interest_rate)
-        #interest -= interest*(1-fraction_year) * interest_rate
+        # interest -= interest*(1-fraction_year) * interest_rate
         return InterestDataRow(
             date=accounting_entry.date,
-            label="Einzahlung" if accounting_entry.amount > 0 else "Auszahlung",
+            label=accounting_entry.comment if accounting_entry.comment else "Einzahlung" if accounting_entry.amount > 0 else "Auszahlung",
             amount=accounting_entry.amount,
             interest_rate=interest_rate,
             days_left_in_year=days_left,
-            interest=interest,
+            interest=Decimal(0) if interest == 0 else interest,
         )
 
     def _contract_change_rows(self, contract_version, old_interest_rate):
@@ -165,25 +175,38 @@ class InterestProcessor:
                                2) if contract_version.interest_type.startswith('mit Zinseszins') else 0,
             )]
 
-    def _contract_terminate_rows(self, interest_rows, terminated_at):
+    def _payout_row(self, interest_rows):
+        sum_interest = 0
+        for i in interest_rows:
+            sum_interest += i.interest
+        return InterestDataRow(
+            date="",
+            label="Zinsauszahlung",
+            amount=Decimal(0) if round(sum_interest, 2) == 0 else Decimal(-sum_interest),
+            interest_rate=Decimal(0),
+            days_left_in_year=0,
+            interest=0,
+        )
+
+    def _contract_terminate_row(self, interest_rows, terminated_at):
         days_left, fraction_year = self._days_fraction_360(terminated_at)
         rest_balance = 0
         rest_interest = 0
 
         for i in interest_rows:
-            rest_balance += i.amount + (i.days_left_in_year-days_left)*i.interest/i.days_left_in_year
-            rest_interest += days_left*i.interest/i.days_left_in_year
-        #rest_balance += rest_interest
+            rest_balance += float(i.amount)
+            if i.days_left_in_year > 0:
+                rest_balance += (i.days_left_in_year - days_left) * float(i.interest) / i.days_left_in_year
+                rest_interest += days_left * float(i.interest) / i.days_left_in_year
 
-        return [
-            InterestDataRow(
+        return InterestDataRow(
                 date=terminated_at,
                 label="Vertragsende",
-                amount=Decimal(-rest_balance),
+                amount=Decimal(0) if round(rest_balance, 2) == 0 else Decimal(-rest_balance),
                 interest_rate=Decimal(0),
                 days_left_in_year=days_left,
-                interest=-rest_interest,
-            )]
+                interest=Decimal(0) if round(rest_interest, 2) == 0 else -rest_interest,
+            )
 
     def _days_fraction_360(self, end_date):
         days_left = days360_eu(end_date, self.end_date)

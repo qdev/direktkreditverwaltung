@@ -10,7 +10,7 @@
 
     <form action="{% url 'dkapp:contracts_interest_filter' %}" method="post">
         {% csrf_token %}
-        <input type="hidden" name="contact_id" value="{{contact_id}}">
+        <input type="hidden" name="contact_id" value="{{ contact_id }}">
         <label>Jahr: </label>
         <select name='year'>
             {% for year in all_years %}
@@ -73,7 +73,18 @@
     {% endfor %}
 
     <br/>
-    <h2>Summe Zinsen</h2>
-    <b>{{ report.sum_interest | euro }}</b>
+
+    <table style="width: 100%;">
+        <tr>
+            <td style="text-align: left;">
+                <h3>Summe Zinsen</h3>
+                <b><u>{{ report.sum_interest | euro }}</u></b>
+            </td>
+            <td style="text-align: right;">
+                <h3>Summe Salden</h3>
+                <b><u>{{ report.sum_salden | euro }}</u></b>
+            </td>
+        </tr>
+    </table>
 
 {% endblock %}

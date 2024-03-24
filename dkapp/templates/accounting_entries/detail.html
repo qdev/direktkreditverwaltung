@@ -27,7 +27,14 @@
   <b>Betrag:</b>
   {{accountingentry.amount | euro}}
 </div>
-
+<div>
+  <b>Zinsbuchung:</b>
+  <input type="checkbox" {% if accounting_entry.interest_relevant %}checked{% endif %} disabled>
+</div>
+<div>
+  <b>Buchungstext:</b>
+  {{accountingentry.comment}}
+</div>
 <br/>
 <div>
     <a href="{% url 'dkapp:accounting_entry_edit' accountingentry.id %}">Editieren</a><br/>

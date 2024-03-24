@@ -37,4 +37,6 @@ urlpatterns = [
     path('accounting_entries/<int:pk>', views.AccountingEntryView.as_view(), name='accounting_entry'),
     path('accounting_entries/<int:pk>/edit', views.AccountingEntryView.edit, name='accounting_entry_edit'),
     path('accounting_entries/<int:pk>/delete', views.AccountingEntryDeleteView.as_view(), name='accounting_entry_delete'),
+
+    path('csv_export/<int:pk>/', views.ExportTransferView.as_view(), name='csv_export'),
 ]

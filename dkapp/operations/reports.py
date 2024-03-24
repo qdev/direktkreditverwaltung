@@ -3,6 +3,7 @@ from decimal import Decimal
 from typing import List, Tuple
 from dataclasses import dataclass
 from dkapp.models import Contact, Contract, AccountingEntry
+from django.db.models import Q
 from dkapp.operations.interest import InterestProcessor, InterestDataRow
 
 
@@ -57,14 +58,16 @@ class InterestTransferListReport:
                 balance=interest_processor.balance,
                 interest_rows=interest_processor.calculation_rows,
             ) for contract in contracts
-            if len((interest_processor := InterestProcessor(contract, year)).calculation_rows) > 1
+            if len((interest_processor := InterestProcessor(contract, year)).calculation_rows) > 0
         ]
         self.sum_interest = sum([data.interest for data in self.per_contract_data])
+        self.sum_salden = sum([data.balance for data in self.per_contract_data])
 
     @classmethod
-    def create(cls, year):
-        all_contracts = Contract.objects.order_by('contact_id', 'number').prefetch_related('contact')
-        return cls(year, contracts=all_contracts)
+    def create(cls, year, contact_id):
+        if contact_id:
+            return cls(year, contracts=Contract.objects.prefetch_related('contact').filter(Q(terminated_at__isnull=True) | Q(terminated_at__year__gt=year-1)).filter(contact__number=contact_id).order_by('number'))
+        return cls(year, contracts=Contract.objects.prefetch_related('contact').filter(Q(terminated_at__isnull=True) | Q(terminated_at__year__gt=year-1)).order_by('contact__number', 'number'))
 
 
 class RemainingCategory:

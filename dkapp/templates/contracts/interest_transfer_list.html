@@ -4,38 +4,50 @@
 
 {% block content %}
 
-<h2>Überweisungsliste der Zinsen für das Jahr {{current_year}}</h2>
+    <h2>Überweisungsliste der Zinsen für das Jahr {{ current_year }}</h2>
 
-<h4>Jahr</h4>
+    <h4>Jahr</h4>
 
-<form action="{% url 'dkapp:contracts_interest_transfer_list' %}" method="post">
-  {% csrf_token %}
-  <select name='year'>
-    {% for year in all_years %}
-      {% if year == current_year %}
-        <option value={{year}} selected>{{year}}</option>
-      {% else %}
-        <option value={{year}}>{{year}}</option>
-      {% endif %}
+    <form action="{% url 'dkapp:contracts_interest_transfer_list' %}" method="post">
+    {% csrf_token %}
+    <select name='year'>
+        {% for year in all_years %}
+            {% if year == current_year %}
+                <option value={{ year }} selected>{{ year }}</option>
+            {% else %}
+                <option value={{ year }}>{{ year }}</option>
+            {% endif %}
+        {% endfor %}
+    </select>
+    <input class="btn btn-success" type="submit" value="Anzeigen">
+    </form>
+
+    <br/>
+
+    {% for data in report.per_contract_data %}
+        <div class="mb-3">
+            <h3>
+                Direktkreditvertrag {{ data.contact.number|stringformat:"04d" }}-{{ data.contract.number|stringformat:"02d" }}
+                ({{ data.contact }})</h3>
+            <b>Zinsen {{ current_year }}: {{ data.interest|euro }}</b><br/>
+            <b>IBAN: </b>{{ data.contact.iban }}<br/>
+            <b>BIC: </b>{{ data.contact.bic }}<br/>
+            <b>Bank: </b>{{ data.contact.bank_name }}<br/>
+        </div>
     {% endfor %}
-  </select>
-  <input class="btn btn-success" type="submit" value="Anzeigen">
-</from>
 
-<br/>
-
-{% for data in report.per_contract_data %}
-<div class="mb-3">
-  <h3>Direktkreditvertrag {{data.contact.number|stringformat:"04d"}}-{{data.contract.number|stringformat:"02d"}} ({{data.contact}})</h3>
-  <b>Zinsen {{current_year}}: {{ data.interest|euro }}</b><br/>
-  <b>IBAN: </b>{{data.contact.iban}}<br/>
-  <b>BIC: </b>{{data.contact.bic}}<br/>
-  <b>Bank: </b>{{data.contact.bank_name}}<br/>
-</div>
-{% endfor %}
-
-<br/>
-<h:>Summe Zinsen</h2>
-<b>{{ report.sum_interest | euro }}</b>
+    <br/>
+    <table width="100%">
+        <tr>
+            <td align=left>
+                <h2>Summe Zinsen</h2>
+                <b><u>{{ report.sum_interest | euro }}</u></b>
+            </td>
+            <td align=right>
+                <h2>Summe Salden</h2>
+                <b><u>{{ report.sum_salden | euro }}</u></b>
+            </td>
+        </tr>
+    </table>
 
 {% endblock %}

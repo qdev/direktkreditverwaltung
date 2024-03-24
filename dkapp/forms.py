@@ -155,11 +155,14 @@ class AccountingEntryForm(forms.ModelForm):
         widgets = {
             'date': forms.DateInput(format='%d.%m.%Y'),
             'amount': forms.NumberInput(),
+            'interest_relevant': forms.CheckboxInput(),
         }
         labels = {
             'contract': 'Vertrag',
             'date': 'Datum',
             'amount': 'Betrag (in Euro, Cents mit . abgetrennt)',
+            'interest_relevant': 'Zinsbuchung',
+            'comment': 'Bemerkung',
         }
 
     def __init__(self, *args, **kwargs):

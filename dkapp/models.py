@@ -27,6 +27,7 @@ class Contact(models.Model):
     remark = models.CharField(max_length=200, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    creditor_account = models.CharField(max_length=200, blank=True)
 
     def __str__(self):
         return self.full_name
@@ -67,13 +68,13 @@ class Contract(models.Model):
 
     @property
     def balance(self):
-        return self.balance_on(timezone.now()) + self.prev_interest(timezone.now())
+        return self.balance_on(timezone.now().date()) + self.prev_interest(timezone.now().date())
 
     def balance_on(self, date):
         """Account balance for given date"""
         return self.accountingentry_set.filter(
             date__lt=date
-        ).aggregate(
+        ).filter(interest_relevant__exact=0).aggregate(
             models.Sum('amount')
         )['amount__sum'] or Decimal('0')
 
@@ -114,38 +115,46 @@ class Contract(models.Model):
         accountingentries = list(self.accountingentry_set.filter(date__lte=until).order_by('date'))
         contractversions = list(self.contractversion_set.filter(start__lte=until).order_by('start'))
         if not contractversions or contractversions[0].start.year > until.year:
-            return None
+            return Decimal(0)
 
         amount = 0.0
+        interest_relevant = 0.0
         pa = 0.0
         rate = float(contractversions[0].interest_rate)
+        inflalimit = contractversions[0].interest_type.endswith(", Inflationlimit")
 
         year = contractversions[0].start.year
         if accountingentries:
             year = min(year, accountingentries[0].date.year)
-        date = datetime(year-1, 12, 31)
+        date = datetime(year - 1, 12, 31)
         fractions = []
         compound_interest = False
-        inflalimit = False
 
         while accountingentries or contractversions:
             if contractversions and (not accountingentries or contractversions[0].start < accountingentries[0].date):
-                amount, pa = self.add_fraction(date, contractversions[0].start, amount, pa, rate, compound_interest, inflalimit, fractions)
+                amount, pa = self.add_fraction(date, contractversions[0].start, amount, pa, rate, compound_interest,
+                                               inflalimit, fractions)
                 compound_interest = contractversions[0].interest_type.startswith("mit Zinseszins")
-                rate = contractversions[0].interest_rate
+                rate = float(contractversions[0].interest_rate)
                 inflalimit = contractversions[0].interest_type.endswith(", Inflationlimit")
                 date = contractversions.pop(0).start
             else:
-                amount, pa = self.add_fraction(date, accountingentries[0].date, amount, pa, rate, compound_interest, inflalimit, fractions)
+                amount, pa = self.add_fraction(date, accountingentries[0].date, amount, pa, rate, compound_interest,
+                                               inflalimit, fractions)
                 amount += float(accountingentries[0].amount)
+                if accountingentries[0].interest_relevant:
+                    interest_relevant += float(accountingentries[0].amount)
                 date = accountingentries.pop(0).date
-        #self.add_fraction(date, until, amount, rate, compound_interest, inflalimit, fractions)
-        # 2n40-Hack:
-        self.add_fraction(date, until - timedelta(days=1), amount, pa, rate, compound_interest, inflalimit, fractions)
 
-        print(fractions)
-        print([x[0] * x[1] * float(x[2]) / 360 for x in fractions])
-        return Decimal(sum([x[0] * x[1] * float(x[2]) / 360 for x in fractions]))
+        if date < until:
+            self.add_fraction(date, until - timedelta(days=1), amount, pa, rate, compound_interest, inflalimit, fractions)
+
+
+        print(
+            f"{self.contact.number:04d}-{self.number:02d}\n{fractions}\n{[x[0] * x[1] * float(x[2]) / 360 for x in fractions]} -> {sum([x[0] * x[1] * float(x[2]) / 360 for x in fractions])} + ({interest_relevant})\n")
+
+        r = sum([x[0] * x[1] * float(x[2]) / 360 for x in fractions]) + interest_relevant
+        return Decimal(0) if r == 0 else Decimal(r)
 
     def versions_in(self, year):
         return self.contractversion_set.filter(start__year=year).order_by('start')
@@ -166,7 +175,7 @@ class Contract(models.Model):
             r = version.interest_rate, version.interest_type
             if version.start <= date:
                 break
-        return (Decimal(self.infla_limit(r[0], date.year)),r[1]) if r[1].endswith(", Inflationlimit") else r
+        return (Decimal(self.infla_limit(r[0], date.year)), r[1]) if r[1].endswith(", Inflationlimit") else r
 
     def accounting_entries_in(self, year):
         return self.accountingentry_set.filter(date__year=year).order_by('date')
@@ -181,7 +190,7 @@ class Contract(models.Model):
     def remaining_years(self, reference_date: Optional[date] = None) -> float:
         if not reference_date:
             reference_date = date.today()
-        return (self.expiring_at(reference_date) - reference_date).days/365
+        return (self.expiring_at(reference_date) - reference_date).days / 365
 
     @classmethod
     def total_sum(cls):
@@ -213,7 +222,9 @@ class ContractVersion(models.Model):
 
     @property
     def expiring(self):
-        return self.start + relativedelta(months=self.duration_months or 0) + relativedelta(years=self.duration_years or 0)
+        return self.start + relativedelta(months=self.duration_months or 0) + relativedelta(
+            months=self.duration_months or 0)
+
 
 class AccountingEntry(models.Model):
     date = models.DateField()
@@ -221,6 +232,8 @@ class AccountingEntry(models.Model):
     contract = models.ForeignKey(Contract, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    interest_relevant = models.BooleanField(default=False)
+    comment = models.CharField(max_length=200, blank=True)
 
     def __str__(self):
         return f"Buchung {self.id} vom {self.date.strftime('%d.%m.%Y')} in {self.contract}"

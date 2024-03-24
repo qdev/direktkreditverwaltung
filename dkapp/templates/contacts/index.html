@@ -20,6 +20,7 @@
         <th>BLZ</th>
         <th>Bankname</th>
         <th>Bemerkung</th>
+        <th>Buchungskonto</th>
         <th></th>
         <th></th>
       </tr>
@@ -36,6 +37,7 @@
               <td>{{contact.bic}}</td>
               <td>{{contact.bank_name}}</td>
               <td>{{contact.remark}}</td>
+              <td>{{contact.creditor_account}}</td>
               <td><a href="{% url 'dkapp:contact' contact.id %}">Anzeigen</a></td>
               <td><a href="{% url 'dkapp:contact_edit' contact.id %}">Editieren</a></td>
           </tr>
