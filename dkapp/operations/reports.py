@@ -60,14 +60,15 @@ class InterestTransferListReport:
             ) for contract in contracts
             if len((interest_processor := InterestProcessor(contract, year)).calculation_rows) > 0
         ]
-        self.sum_interest = sum([data.interest for data in self.per_contract_data])
-        self.sum_salden = sum([data.balance for data in self.per_contract_data])
+        self.sum_interest = Decimal(round(sum([data.interest for data in self.per_contract_data]),2))
+        self.sum_salden = Decimal(round(sum([data.balance for data in self.per_contract_data]),2))
+
 
     @classmethod
     def create(cls, year, contact_id):
         if contact_id:
-            return cls(year, contracts=Contract.objects.prefetch_related('contact').filter(Q(terminated_at__isnull=True) | Q(terminated_at__year__gt=year-1)).filter(contact__number=contact_id).order_by('number'))
-        return cls(year, contracts=Contract.objects.prefetch_related('contact').filter(Q(terminated_at__isnull=True) | Q(terminated_at__year__gt=year-1)).order_by('contact__number', 'number'))
+            return cls(year, contracts=Contract.objects.prefetch_related('contact').filter(Q(terminated_at__isnull=True) | Q(terminated_at__year__gt=year - 1)).filter(contact__number=contact_id).order_by('number'))
+        return cls(year, contracts=Contract.objects.prefetch_related('contact').filter(Q(terminated_at__isnull=True) | Q(terminated_at__year__gt=year - 1)).order_by('contact__number', 'number'))
 
 
 class RemainingCategory:
