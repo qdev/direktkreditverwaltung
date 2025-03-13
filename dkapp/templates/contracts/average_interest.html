@@ -17,6 +17,7 @@
   <th>Kontostand</th>
   <th>Anteil an Gesamtsumme</th>
   <th>Zinssatz</th>
+  <th>Art der Verzinsung</th>
   <th>Relativer Zinssatz</th>
 </tr>
 
@@ -28,6 +29,7 @@
       <td>{{ data.balance | euro }}</td>
       <td>{{ data.fraction_credit | fraction }}</td>
       <td>{{ data.interest_rate | fraction }}</td>
+      <td>{{ data.interest_type }}</td>
       <td>{{ data.relative_interest_rate | fraction }}</td>
     </tr>
   {% endwith %}

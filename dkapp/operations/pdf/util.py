@@ -18,7 +18,7 @@ INTEREST_TABLE_HEADERS = [
     "Vorgang",
     "Betrag",
     "Zinssatz",
-    "verbleibende Tage im Jahr",
+    "Tage",
     "Zinsen",
 ]
 
@@ -27,8 +27,8 @@ INTERST_TABLE_STYLE = TableStyle([
     ('GRID', (0,0), (-1,-1), 0.05, colors.grey),
 ])
 
-INTEREST_TABLE_WIDTHS = [2*cm, 2*cm, 2.7*cm, 1.6*cm, 4*cm, 4.3*cm, 2*cm]
-INTEREST_TABLE_WIDTHS_NARROW = [2*cm, 2*cm, 2.2*cm, 1.6*cm, 4*cm, 4.3*cm, 1.5*cm]
+INTEREST_TABLE_WIDTHS = [4*cm, 4*cm, 2.7*cm, 1.6*cm, 2*cm, 2.3*cm, 2*cm]
+INTEREST_TABLE_WIDTHS_NARROW = [4*cm, 4*cm, 2.2*cm, 1.6*cm, 2*cm, 2.3*cm, 1.5*cm]
 
 
 def get_image(path, width=1*cm):

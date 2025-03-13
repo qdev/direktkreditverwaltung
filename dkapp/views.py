@@ -218,7 +218,7 @@ class ContractsExpiringView(generic.ListView):
         contracts = Contract.objects.order_by('created_at')
         # this could be done in SQL to avoid n+1 queries but I'll go for fast
         # dev speed here
-        return sorted(filter(lambda c: c.balance > 0, contracts), key=attrgetter('expiring'))
+        return sorted(filter(lambda c: c.balance > 0 and c.expiring, contracts), key=attrgetter('expiring'))
 
 
 class ContractsRemainingView(generic.TemplateView):

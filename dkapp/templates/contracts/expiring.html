@@ -15,11 +15,12 @@ Verträge mit Kontostand 0 werden nicht angezeigt.
 <table class='table table-striped'>
   <tr>
     <th>Ablaufdatum</th>
-    <th>Nummer</th>
     <th>Kontakt</th>
     <th>Start</th>
     <th>Laufzeit in Monaten</th>
+    <th>Kündigungsfrist im Monaten</th>
     <th>Zinssatz</th>
+    <th>Zinsart</th>  
     <th>Kontostand</th>
     <th></th>
   </tr>
@@ -28,7 +29,6 @@ Verträge mit Kontostand 0 werden nicht angezeigt.
   {% with last_version=contract.last_version %}
   <tr>
     <td>{{ contract.expiring | date:"SHORT_DATE_FORMAT"  }}</td>
-    <td>{{ contract.number }}</td>
     <td>{{ contract }}</td>
     <td>{{ last_version.start | date:"SHORT_DATE_FORMAT" }}</td>
     <td>{{ last_version.duration_months | default_if_none:'-'}}</td>

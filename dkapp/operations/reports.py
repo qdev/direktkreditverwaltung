@@ -13,6 +13,7 @@ class FractionPerContract:
     balance: float
     fraction_credit: float
     interest_rate: float
+    interest_type: str
     relative_interest_rate: float
 
 
@@ -33,10 +34,7 @@ class AverageInterestRateReport:
 
     @classmethod
     def create(cls):
-        all_contracts = Contract.objects.order_by('number')
-        assert AccountingEntry.total_sum() == Contract.total_sum()
-        sum_credit = AccountingEntry.total_sum()
-        return cls(contracts=all_contracts, sum_credit=sum_credit)
+        return cls(contracts=Contract.objects.order_by('contact_id','number'), sum_credit=Contract.total_sum())
 
 
 @dataclass

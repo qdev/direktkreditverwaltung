@@ -182,7 +182,9 @@ class Contract(models.Model):
 
     @property
     def expiring(self):
-        return self.last_version.expiring
+        date = self.terminated_at
+        last = self.first_version.expiring
+        return last if not date or (last and date > last) else date
 
     def expiring_at(self, reference_date: date):
         return self.version_at(reference_date).expiring
@@ -222,9 +224,7 @@ class ContractVersion(models.Model):
 
     @property
     def expiring(self):
-        return self.start + relativedelta(months=self.duration_months or 0) + relativedelta(
-            months=self.duration_months or 0)
-
+        return (self.start + relativedelta(months=self.duration_months)) if self.duration_months else None
 
 class AccountingEntry(models.Model):
     date = models.DateField()
