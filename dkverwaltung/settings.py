@@ -27,17 +27,20 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
 
 # Application definition
 
 INSTALLED_APPS = [
-    'dkapp.apps.DkappConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'dkapp',
+    'db_router'
 ]
 
 MIDDLEWARE = [
@@ -74,6 +77,9 @@ WSGI_APPLICATION = 'dkverwaltung.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
+DATABASE_PATH = os.getenv("DKDB", os.path.expanduser("dkdb.sqlite3"))
+print(f"Used DK data base:  {DATABASE_PATH}")
+
 DATABASE_ROUTERS = ['db_router.DatabaseAppsRouter']
 DATABASES = {
     'default': {
@@ -82,7 +88,7 @@ DATABASES = {
     },
     'dkdb': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'dkdb.sqlite3'),
+        'NAME': DATABASE_PATH,
     }
 }
 
