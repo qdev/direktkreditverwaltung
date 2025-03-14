@@ -13,3 +13,5 @@ reportlab
 setuptools
 six
 sqlparse
+python-dateutil
+pyinstaller

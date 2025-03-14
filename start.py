@@ -19,8 +19,9 @@ def format_host_port(value):
     return None
 
 def delayed_browser_open(url):
-    time.sleep(1)
-    webbrowser.open(url)
+    if sys.platform.startswith("win") or os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY"):
+        time.sleep(1)
+        webbrowser.open(url)
 
 def run():
     if len(sys.argv) == 1:
