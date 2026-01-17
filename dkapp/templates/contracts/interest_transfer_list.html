@@ -24,7 +24,7 @@
 
     <br/>
 
-    {% for data in report.per_contract_data %}
+    {% for data in per_contract_data %}
         <div class="mb-3">
             <h3>
                 Direktkreditvertrag {{ data.contact.number|stringformat:"04d" }}-{{ data.contract.number|stringformat:"02d" }}
@@ -41,11 +41,11 @@
         <tr>
             <td align=left>
                 <h2>Summe Zinsen</h2>
-                <b><u>{{ report.sum_interest | euro }}</u></b>
+                <b><u>{{ sum_interest | euro }}</u></b>
             </td>
             <td align=right>
                 <h2>Summe Salden</h2>
-                <b><u>{{ report.sum_salden | euro }}</u></b>
+                <b><u>{{ sum_salden | euro }}</u></b>
             </td>
         </tr>
     </table>

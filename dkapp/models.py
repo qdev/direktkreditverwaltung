@@ -150,8 +150,8 @@ class Contract(models.Model):
             self.add_fraction(date, until - timedelta(days=1), amount, pa, rate, compound_interest, inflalimit, fractions)
 
 
-        print(
-            f"{self.contact.number:04d}-{self.number:02d}\n{fractions}\n{[x[0] * x[1] * float(x[2]) / 360 for x in fractions]} -> {sum([x[0] * x[1] * float(x[2]) / 360 for x in fractions])} + ({interest_relevant})\n")
+        #print(
+        #    f"{self.contact.number:04d}-{self.number:02d}\n{fractions}\n{[x[0] * x[1] * float(x[2]) / 360 for x in fractions]} -> {sum([x[0] * x[1] * float(x[2]) / 360 for x in fractions])} + ({interest_relevant})\n")
 
         r = sum([x[0] * x[1] * float(x[2]) / 360 for x in fractions]) + interest_relevant
         return Decimal(0) if r == 0 else Decimal(r)

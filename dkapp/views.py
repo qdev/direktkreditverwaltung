@@ -188,10 +188,25 @@ class ContractsInterestTransferListView(generic.TemplateView):
     def get(self, request):
         this_year = datetime.now().year
         year = int(request.GET.get('year') or this_year)
+
+        report = InterestTransferListReport.create(year, None)
+
+        filtered_per_contract_data = [
+            d for d in report.per_contract_data
+            if d.contract.last_version
+            and "direkte Auszahlung" in (d.contract.last_version.interest_type or "")
+        ]
+
+        sum_interest_filtered = sum([d.interest for d in filtered_per_contract_data])
+        sum_salden_filtered = sum([d.balance for d in filtered_per_contract_data])
+
         return render(request, self.template_name, {
             'current_year': year,
             'all_years': list(range(this_year, this_year - 10, -1)),
-            'report': InterestTransferListReport.create(year, None),
+            'report': report,
+            'per_contract_data': filtered_per_contract_data,
+            'sum_interest': round(sum_interest_filtered, 2),
+            'sum_salden': round(sum_salden_filtered, 2),
         })
 
     def post(self, request):

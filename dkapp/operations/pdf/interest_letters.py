@@ -26,7 +26,7 @@ from .util import get_image, interest_year_table, get_custom_texts
 
 
 class InterestLettersGenerator:
-    LOGO_WIDTH=6.5*cm
+    LOGO_WIDTH = 2.5 * cm
 
     def __init__(self, report: InterestTransferListReport, year: int, today: str):
         self.snippets = get_custom_texts()
@@ -37,50 +37,56 @@ class InterestLettersGenerator:
         self._setup_styles()
 
         doc = SimpleDocTemplate(self.buffer, pagesize=A4)
-        doc.leftMargin = 1.5*cm
-        doc.rightMargin = 1.5*cm
-        doc.topMargin = 1.0*cm
-        doc.bottomMargin = 1.5*cm
+        doc.leftMargin = 1.5 * cm
+        doc.rightMargin = 1.5 * cm
+        doc.topMargin = 1.0 * cm
+        doc.bottomMargin = 1.5 * cm
+        count = 1
+        last = -1
+        index = []
 
         for data in report.per_contract_data:
-            story.extend(self._header(data))
+            if data.balance != 0 or len(data.interest_rows) > 2:
+                story.extend(self._header(data))
+                story.append(Spacer(1, 1.0 * cm))
+                story.append(Paragraph(f"Kontostand Direktkreditvertrag Nr. {data.contact.number:04d}-{data.contract.number:02d} für das Jahr {year}", self.styleH2))
 
-            story.append(Spacer(1, 1.0*cm))
-            story.append(Paragraph(f"Kontostand Direktkreditvertrag Nr. {data.contract.number}", self.styleH2))
+                story.append(Spacer(1, 1.0 * cm))
+                story.append(Paragraph(f"Hallo {data.contract.contact.name}, ", self.styleN))
+                story.append(Spacer(1, 0.3 * cm))
+                story.append(Paragraph("herzlichen Dank für die Unterstützung!", self.styleN))
+                story.append(Paragraph(f"Der Kontostand für das Jahr {year} berechnet sich wie folgt: ", self.styleN))
+                story.append(Spacer(1, 0.5 * cm))
+                story.append(interest_year_table(data.interest_rows, narrow=True))
+                story.append(Spacer(1, 0.5 * cm))
+                story.append(Paragraph(f"Der Kontostand Ende {year} beträgt damit <b>{euro(data.balance)}</b>.", self.styleN))
+                if data.interest > 0:
+                    story.append(Paragraph(f"Darin enthalten sind <b>{euro(data.interest)}</b> Zinsen aus dem Jahr.", self.styleN))
+                    story.append(Spacer(1, 0.3 * cm))
+                    if (data.contract.last_version.interest_type.startswith("ohne Zinseszins")):
+                        story.append(Paragraph(f"Entsprechend der Vertragsvereinbarung verbleiben die angefallenen Zinsen bei der {self.snippets['gmbh_name']}, ohne in den Folgejahren mit verzinst zu werden. Zinserträge sind in der Steuererklärung mit anzugeben.", self.styleN))
+                    elif (data.contract.last_version.interest_type.startswith("mit Zinseszins")):
+                        story.append(Paragraph(f"Entsprechend der Vertragsvereinbarung verbleiben die angefallenen Zinsen bei der {self.snippets['gmbh_name']} und werden in den Folgejahren mit verzinst. Zinserträge sind in der Steuererklärung mit anzugeben.", self.styleN))
+                    elif (data.contract.last_version.interest_type.startswith("direkte Auszahlung")):
+                        story.append(Paragraph(f"Entsprechend der Vertragsvereinbarung werden wir die Zinsen auf das im Vertrag angegebene Konto überweisen. Zinserträge sind in der Steuererklärung mit anzugeben.", self.styleN))
 
-            story.append(Spacer(1, 1.0*cm))
-            story.append(Paragraph(f"Guten Tag {data.contract.contact.name}, ", self.styleN))
+                story.append(Spacer(1, 0.3 * cm))
+                story.append(Paragraph("Wir bitten um Überprüfung dieses Auszuges. Falls etwas nicht stimmt oder unverständlich ist, stehen wir für Rückfragen gern zur Verfügung.", self.styleN))
+                story.append(Spacer(1, 0.5 * cm))
+                story.append(Paragraph("Vielen Dank!", self.styleN))
+                story.append(Spacer(1, 1.5 * cm))
+                story.append(Paragraph("Mit freundlichen Grüßen", self.styleN))
+                story.append(Spacer(1, 0.1 * cm))
+                story.append(Paragraph(f"{self.snippets['your_name']}, für die {self.snippets['gmbh_name']}", self.styleN))
+                story.append(PageBreak())
+                count += 1
+                if data.contact.number != last:
+                    last = data.contact.number
+                    index.append(Paragraph(f"{data.contact.number:04d};{data.contact.email};{data.contact.first_name};{count}", self.styleL))
 
-            story.append(Spacer(1, 0.3*cm))
-            story.append(Paragraph((
-                f"der Kontostand des Direktkreditvertrags Nr. {data.contract.number} beträgt heute, "
-                f" am {today} {euro(data.contract.balance)}. "
-                ), self.styleN))
-            story.append(Paragraph(f"Die Zinsen für das Jahr {year} berechnen sich wie folgt:", self.styleN))
-            story.append(Spacer(1, 0.3*cm))
-            story.append(interest_year_table(data.interest_rows, narrow=True))
-            story.append(Spacer(1, 0.3*cm))
-            story.append(Paragraph(f"<b>Zinsen {year}:</b> {euro(data.interest)}", self.styleN))
-            story.append(Spacer(1, 0.5*cm))
-            story.append(Paragraph((
-                "Wir werden die Zinsen in den nächsten Tagen auf das im Vertrag angegebene Konto "
-                "überweisen. Bitte beachten Sie, dass Sie sich selbst um die Abführung von "
-                "Kapitalertragssteuer und Solidaritätszuschlag kümmern sollten, da wir das nicht "
-                "übernehmen können. "
-                ), self.styleN))
-            story.append(Spacer(1, 0.5*cm))
-            story.append(Paragraph("Vielen Dank!", self.styleN))
-            story.append(Spacer(1, 1.5*cm))
-            story.append(Paragraph("Mit freundlichen Grüßen", self.styleN))
-            story.append(Spacer(1, 1.0*cm))
-            story.append(Paragraph(self.snippets['your_name'], self.styleN))
-            story.append(Paragraph(f"für die {self.snippets['gmbh_name']}", self.styleN))
-            story.append(Spacer(1, 0.3*cm))
+        index.append(PageBreak())
 
-            story.append(PageBreak())
-
-
-        doc.build(story, onFirstPage=self._draw_footer, onLaterPages=self._draw_footer)
+        doc.build(index + story, onLaterPages=self._draw_footer)
         self.buffer.seek(0)
 
     def _setup_styles(self):
@@ -126,9 +132,9 @@ class InterestLettersGenerator:
             ('ALIGN', (0, 0), (-1, -1), 'RIGHT'),
             ('VALIGN', (0, 0), (-1, -1), 'TOP'),
         ])
-        header.append(Table([[
-            img,
-        ]], style=table_style, colWidths='*'))
+        # header.append(Table([[
+        #    img,
+        # ]], style=table_style, colWidths='*'))
 
         table_style = TableStyle([
             *self.base_table_style,
@@ -146,34 +152,37 @@ class InterestLettersGenerator:
         ])
         address_lines = data.contract.contact.address.split(',')
         left_column = Table([
-            [Spacer(1, 1.7*cm)],
-            [Paragraph(f"{self.snippets['gmbh_name']} - {self.snippets['street_no']} - {self.snippets['zipcode']} {self.snippets['city']}", self.styleSS)],
-            [Spacer(1, 0.5*cm)],
+            # [Spacer(1, 1.7*cm)],
+            [Paragraph(f"{self.snippets['gmbh_name']} - {self.snippets['street_no']} - {self.snippets['zipcode']} {self.snippets['city']}", self.styleL)],
+            [Spacer(1, 0.5 * cm)],
             [Paragraph(data.contract.contact.name, self.styleN)],
-            [Paragraph(address_lines[0], self.styleN)],
-            [Spacer(1, 0.3*cm)],
-            [Paragraph(address_lines[1], self.styleN)],
-            ], style=left_table_style, colWidths='*')
+            [Paragraph(address_lines[0] if len(address_lines) > 0 else "unbekant", self.styleN)],
+            [Spacer(1, 0.3 * cm)],
+            [Paragraph(address_lines[1] if len(address_lines) > 1 else "unbekant", self.styleN)],
+        ], style=left_table_style, colWidths='*')
         right_column = Table([
-            [Paragraph("<i>Projekt im Mietshäuser Syndikat</i>", self.styleL)],
-            [Spacer(1, 0.3*cm)],
+            [[img]],
+            [Spacer(1, 0.3 * cm)],
+            [Paragraph("<i>Hausprojekt 2n40,</i>", self.styleL)],
+            [Paragraph("<i>aus dem Mietshäuser Syndikat</i>", self.styleL)],
+            [Spacer(1, 0.3 * cm)],
             [Paragraph((
                 f"{self.snippets['street_no']}<br/>"
                 f"{self.snippets['zipcode']} {self.snippets['city']}"
             ), self.styleL)],
-            [Spacer(1, 0.3*cm)],
+            [Spacer(1, 0.3 * cm)],
             [Paragraph(f"e-mail: {self.snippets['email']}<br/>{self.snippets['web']}", self.styleL)],
         ], style=right_table_style, colWidths='*')
-        date = Table([[ Paragraph(f"{self.snippets['city']}, {self.today}", self.styleNR) ]],
-            style=TableStyle([
-                ('ALIGN', (0, 0), (0, 0), 'RIGHT'),
-                ('RIGHTPADDING', (0, 0), (-1, -1), 0),
-            ]),
-            colWidths=['*']
-        )
-        header.append(Table([[left_column, right_column]], style=table_style, colWidths=[13.4*cm, 4.2*cm]))
+        date = Table([[Paragraph(f"{self.snippets['city']}, {self.today}", self.styleNR)]],
+                     style=TableStyle([
+                         ('ALIGN', (0, 0), (0, 0), 'RIGHT'),
+                         ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+                     ]),
+                     colWidths=['*']
+                     )
+        header.append(Table([[left_column, right_column]], style=table_style, colWidths=[13.4 * cm, 4.2 * cm]))
 
-        header.append(Spacer(1, 1.5*cm))
+        header.append(Spacer(1, 1.5 * cm))
         header.append(date)
         return header
 
@@ -188,8 +197,8 @@ class InterestLettersGenerator:
             width="100%",
             thickness=1,
             color=self.lightgrey,
-            spaceBefore=2*cm,
-            spaceAfter=0.2*cm,
+            spaceBefore=2 * cm,
+            spaceAfter=0.2 * cm,
             hAlign='CENTER',
             vAlign='BOTTOM',
         ))
@@ -203,4 +212,4 @@ class InterestLettersGenerator:
                 ), self.styleG)
             ]
         ], style=table_style, colWidths='*'))
-        Frame(1.5*cm, 0.5*cm, 18*cm, 2*cm).addFromList(footer, canvas)
+        Frame(1.5 * cm, 0.5 * cm, 18 * cm, 2 * cm).addFromList(footer, canvas)
