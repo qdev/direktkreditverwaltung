@@ -1,26 +1,100 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>Datenbanken</h3>
+<div class="row mb-4">
+    <div class="col">
+        <h2 class="display-5 fw-bold">Willkommen</h2>
+        <p class="lead">Zentrale Verwaltung für Direktkredite.</p>
+    </div>
+</div>
 
-<h3>Personen</h3>
+<div class="row g-4 mb-5">
+    <!-- Datenbanken Section -->
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100 shadow-sm border-0 transition-hover">
+            <div class="card-body text-center">
+                <div class="display-4 text-primary mb-3"><i class="bi bi-people"></i></div>
+                <h3 class="card-title h5">Kontakte</h3>
+                <p class="card-text text-muted small">Verwaltung von Personen und Organisationen.</p>
+                <a href="{% url 'dkapp:contacts' %}" class="btn btn-outline-primary stretched-link">Ansehen</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100 shadow-sm border-0 transition-hover">
+            <div class="card-body text-center">
+                <div class="display-4 text-success mb-3"><i class="bi bi-file-earmark-text"></i></div>
+                <h3 class="card-title h5">Verträge</h3>
+                <p class="card-text text-muted small">Übersicht aller Direktkreditverträge und Versionen.</p>
+                <a href="{% url 'dkapp:contracts' %}" class="btn btn-outline-success stretched-link">Ansehen</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100 shadow-sm border-0 transition-hover">
+            <div class="card-body text-center">
+                <div class="display-4 text-warning mb-3"><i class="bi bi-clock-history"></i></div>
+                <h3 class="card-title h5">Versionen</h3>
+                <p class="card-text text-muted small">Historie aller Vertragsänderungen.</p>
+                <a href="{% url 'dkapp:contract_versions' %}" class="btn btn-outline-warning stretched-link">Ansehen</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+        <div class="card h-100 shadow-sm border-0 transition-hover">
+            <div class="card-body text-center">
+                <div class="display-4 text-danger mb-3"><i class="bi bi-list-check"></i></div>
+                <h3 class="card-title h5">Buchungen</h3>
+                <p class="card-text text-muted small">Alle finanziellen Transaktionen im System.</p>
+                <a href="{% url 'dkapp:accounting_entries' %}" class="btn btn-outline-danger stretched-link">Ansehen</a>
+            </div>
+        </div>
+    </div>
+</div>
 
-<a href="{% url 'dkapp:contacts' %}">Kontakte</a>
+<div class="row mb-4">
+    <div class="col">
+        <h2 class="h3">Auswertungen</h2>
+    </div>
+</div>
 
-<h3>Verträge</h3>
-<a href="{% url 'dkapp:contracts' %}">Direktkreditverträge</a> (mit Möglichkeit zur Erstellung von Kontoauszügen, Vertragsversionen und zum Hinzufügen von Buchungen)
-
-<h3>Versionen von Verträgen</h3>
-<a href="{% url 'dkapp:contract_versions' %}">Versionen der Verträge</a>
-
-<h3>Buchungen</h3>
-<a href="{% url 'dkapp:accounting_entries' %}">Alle Buchungen</a> (mit Möglichkeit zum zeitlichen Filtern)
-
-<h2>Auswertungen</h2>
-<ul>
-    <li><a href="{% url 'dkapp:contracts_interest' %}">Zinsen</a> (auch zur Erzeugung der Zinsbriefe am Jahresende)</li>
-    <li><a href="{% url 'dkapp:contracts_interest_transfer_list' %}">Zinsüberweisungsliste</a></li>
-    <li><a href="{% url 'dkapp:contracts_interest_average' %}">Durchschnittlicher Zinssatz</a></li>
-    <li><a href="{% url 'dkapp:contracts_expiring' %}">Auslaufende Verträge</a></li>
-    <li><a href="{% url 'dkapp:contracts_remaining' %}">Restlaufzeiten in Kategorien</a></li>
-</ul>
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="list-group shadow-sm">
+            <a href="{% url 'dkapp:contracts_interest' %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="bi bi-percent me-2"></i> Zinsen & Zinsbriefe
+                </div>
+                <i class="bi bi-chevron-right small"></i>
+            </a>
+            <a href="{% url 'dkapp:contracts_interest_transfer_list' %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="bi bi-list-ul me-2"></i> Zinsüberweisungsliste
+                </div>
+                <i class="bi bi-chevron-right small"></i>
+            </a>
+            <a href="{% url 'dkapp:contracts_interest_average' %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="bi bi-graph-up me-2"></i> Durchschnittlicher Zinssatz
+                </div>
+                <i class="bi bi-chevron-right small"></i>
+            </a>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="list-group shadow-sm">
+            <a href="{% url 'dkapp:contracts_expiring' %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="bi bi-calendar-x me-2"></i> Auslaufende Verträge
+                </div>
+                <i class="bi bi-chevron-right small"></i>
+            </a>
+            <a href="{% url 'dkapp:contracts_remaining' %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="bi bi-pie-chart me-2"></i> Restlaufzeiten in Kategorien
+                </div>
+                <i class="bi bi-chevron-right small"></i>
+            </a>
+        </div>
+    </div>
+</div>
 {% endblock %}

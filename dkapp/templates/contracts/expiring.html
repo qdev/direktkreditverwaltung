@@ -1,48 +1,61 @@
 {% extends "base.html" %}
 {% load my_filters %}
-{% block title %}Direktkreditverträge{% endblock %}
+{% block title %}Auslaufende Verträge{% endblock %}
 
 {% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h3 mb-0">Auslaufende Verträge</h2>
+</div>
 
-<h2>Übersicht Direktkreditverträge, sortiert nach Ablaufdatum</h2>
-
-<p>
-Die Angaben von Start, Laufzeit und Zinssatz beziehen sich auf die letzte Version der Verträge.
-Verträge mit Kontostand 0 werden nicht angezeigt.
-</p>
+<div class="card shadow-sm mb-4 border-0">
+    <div class="card-body bg-light small py-2">
+        <i class="bi bi-info-circle me-1 text-primary"></i> Sortiert nach Ablaufdatum. Verträge mit Kontostand 0 werden nicht angezeigt.
+    </div>
+</div>
 
 {% if contracts %}
-<table class='table table-striped'>
-  <tr>
-    <th>Ablaufdatum</th>
-    <th>Kontakt</th>
-    <th>Start</th>
-    <th>Laufzeit in Monaten</th>
-    <th>Kündigungsfrist im Monaten</th>
-    <th>Zinssatz</th>
-    <th>Zinsart</th>  
-    <th>Kontostand</th>
-    <th></th>
-  </tr>
-
-{% for contract in contracts %}
-  {% with last_version=contract.last_version %}
-  <tr>
-    <td>{{ contract.expiring | date:"SHORT_DATE_FORMAT"  }}</td>
-    <td>{{ contract }}</td>
-    <td>{{ last_version.start | date:"SHORT_DATE_FORMAT" }}</td>
-    <td>{{ last_version.duration_months | default_if_none:'-'}}</td>
-    <td>{{ last_version.cancellation_months | default_if_none:'-'}}</td>
-    <td>{{ last_version.interest_rate | fraction }}</td>
-    <td>{{ last_version.interest_type}}</td>
-    <td>{{ contract.balance | euro }}</td>
-    <td><a href="{% url 'dkapp:contract' contract.id %}">Anzeigen</a></td>
-  </tr>
-  {% endwith %}
-{% endfor %}
-</table>
+<div class="card shadow-sm border-0">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 small">
+            <thead class="table-light">
+                <tr>
+                    <th>Ablaufdatum</th>
+                    <th>Vertrag / Kontakt</th>
+                    <th>Start</th>
+                    <th class="text-center">Laufzeit (Mon.)</th>
+                    <th class="text-center">Kündig. (Mon.)</th>
+                    <th class="text-end">Zinssatz</th>
+                    <th class="text-end">Kontostand</th>
+                    <th class="text-end">Aktionen</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for contract in contracts %}
+                {% with last_version=contract.last_version %}
+                <tr>
+                    <td class="text-numeric fw-bold text-danger">{{ contract.expiring | date:"SHORT_DATE_FORMAT" }}</td>
+                    <td>{{ contract }}</td>
+                    <td class="text-numeric">{{ last_version.start | date:"SHORT_DATE_FORMAT" }}</td>
+                    <td class="text-center text-numeric">{{ last_version.duration_months | default_if_none:'-'}}</td>
+                    <td class="text-center text-numeric">{{ last_version.cancellation_months | default_if_none:'-'}}</td>
+                    <td class="text-end text-numeric">{{ last_version.interest_rate | fraction }}</td>
+                    <td class="text-end text-numeric fw-bold">{{ contract.balance | euro }}</td>
+                    <td class="text-end">
+                        <a href="{% url 'dkapp:contract' contract.id %}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% endwith %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 {% else %}
-    <p>Noch kein Vertrag vorhanden.</p>
+<div class="alert alert-info shadow-sm">
+    <i class="bi bi-info-circle me-2"></i> Aktuell keine auslaufenden Verträge mit Guthaben vorhanden.
+</div>
 {% endif %}
 
 {% endblock %}

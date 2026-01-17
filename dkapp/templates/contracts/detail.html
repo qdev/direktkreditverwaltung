@@ -1,82 +1,122 @@
 {% extends "base.html" %}
 {% load my_filters %}
-{% block title %}Direktkreditvertrag {{contract.contact.number|stringformat:"04d"}}-{{contract.number|stringformat:"02d"}}{% endblock %}
+{% block title %}Vertrag {{contract.contact.number|stringformat:"04d"}}-{{contract.number|stringformat:"02d"}}{% endblock %}
 
 {% block content %}
-
-{% if error_message %}<div><strong>{{ error_message }}</strong></div>{% endif %}
-
-<p>
-Start, Laufzeit und Zinssatz der <i>letzen Version</i> des Vertrags
-</p>
-
-<div>
-  <b>Nummer:</b>
-  {{contract.contact.number|stringformat:"04d"}}-{{contract.number|stringformat:"02d"}}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="{% url 'dkapp:contracts' %}">Verträge</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Vertrag {{contract.contact.number|stringformat:"04d"}}-{{contract.number|stringformat:"02d"}}</li>
+        </ol>
+    </nav>
+    <div class="btn-group">
+        <a href="{% url 'dkapp:contract_edit' contract.id %}" class="btn btn-outline-secondary">
+            <i class="bi bi-pencil me-1"></i> Editieren
+        </a>
+        <a href="{% url 'dkapp:contract_delete' contract.id %}" class="btn btn-outline-danger">
+            <i class="bi bi-trash me-1"></i> Löschen
+        </a>
+    </div>
 </div>
 
-<div>
-  <b>Kontakt:</b>
-  {{contract.contact.full_name}}
+{% if error_message %}
+<div class="alert alert-danger shadow-sm">
+    <i class="bi bi-exclamation-triangle me-2"></i> {{ error_message }}
 </div>
+{% endif %}
 
-<div>
-  <b>Kontostand:</b>
-  {{contract.balance | euro}}
-</div>
+<div class="row g-4">
+    <!-- Stammdaten Card -->
+    <div class="col-md-7">
+        <div class="card shadow-sm h-100 border-0">
+            <div class="card-header bg-white fw-bold py-3">
+                <i class="bi bi-info-square me-2 text-primary"></i>Vertragsdetails
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted small">Nummer</div>
+                    <div class="col-sm-8 fw-bold text-numeric">{{contract.contact.number|stringformat:"04d"}}-{{contract.number|stringformat:"02d"}}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted small">Kontakt</div>
+                    <div class="col-sm-8">
+                        <a href="{% url 'dkapp:contact' contract.contact.id %}" class="fw-bold">
+                            {{contract.contact.full_name}} <i class="bi bi-box-arrow-up-right small ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted small">Kontostand</div>
+                    <div class="col-sm-8 h4 mb-0 text-success fw-bold text-numeric">{{contract.balance | euro}}</div>
+                </div>
+                <hr class="text-muted opacity-25">
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted small">Kategorie / Typ</div>
+                    <div class="col-sm-8"><span class="badge bg-secondary">{{contract.category}}</span></div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted small">Bemerkung</div>
+                    <div class="col-sm-8">{{contract.comment|default:"-"}}</div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-4 text-muted small">Enddatum</div>
+                    <div class="col-sm-8 text-numeric">{{contract.terminated_at | date:"SHORT_DATE_FORMAT"|default:"-"}}</div>
+                </div>
+            </div>
+            <div class="card-footer bg-light py-2 small text-muted">
+                <i class="bi bi-clock-history me-1"></i> Letzte Aktualisierung: {{ contract.last_version.start | date:"SHORT_DATE_FORMAT" }}
+            </div>
+        </div>
+    </div>
 
-<div>
-  <b>Start:</b>
-  {{contract.last_version.start | date:"SHORT_DATE_FORMAT"}}
-</div>
+    <!-- Konditionen Card -->
+    <div class="col-md-5">
+        <div class="card shadow-sm mb-4 border-0">
+            <div class="card-header bg-white fw-bold py-3">
+                <i class="bi bi-gear me-2 text-primary"></i>Konditionen (aktuelle Version)
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-6 text-muted small">Zinssatz</div>
+                    <div class="col-6 text-end fw-bold text-success">{{contract.last_version.interest_rate | fraction}}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-6 text-muted small">Start</div>
+                    <div class="col-6 text-end text-numeric">{{contract.last_version.start | date:"SHORT_DATE_FORMAT"}}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-6 text-muted small">Laufzeit</div>
+                    <div class="col-6 text-end">{{contract.last_version.duration_months | default_if_none:'-'}} Monate</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-6 text-muted small">Kündigungsfrist</div>
+                    <div class="col-6 text-end">{{contract.last_version.cancellation_months | default_if_none:'-'}} Monate</div>
+                </div>
+                <div class="row">
+                    <div class="col-12 text-muted small mb-1">Verzinsungsart</div>
+                    <div class="col-12"><small class="bg-light p-1 rounded d-block">{{contract.last_version.interest_type}}</small></div>
+                </div>
+            </div>
+        </div>
 
-<div>
-  <b>Laufzeit in Monaten:</b>
-  {{contract.last_version.duration_months | default_if_none:'-'}}
-</div>
-
-<div>
-  <b>Kündigungsfrist in Monaten:</b>
-  {{contract.last_version.cancellation_months | default_if_none:'-'}}
-</div>
-
-
-<div>
-  <b>Zinssatz:</b>
-  {{contract.last_version.interest_rate | fraction}}
-</div>
-
-<div>
-  <b>Art der Verzinsung:</b>
-  {{contract.last_version.interest_type}}
-</div>
-
-<div>
-  <b>Typ:</b>
-  {{contract.category}}
-</div>
-
-<div>
-  <b>Bemerkung:</b>
-  {{contract.comment}}
-</div>
-
-<div>
-  <b>Ende:</b>
-  {{contract.terminated_at | date:"SHORT_DATE_FORMAT"}}
-</div>    
-    
-    
-<br/>
-<div>
-    <a href="{% url 'dkapp:contract_edit' contract.id %}">Editieren</a><br/>
-    <a href="{% url 'dkapp:contract_delete' contract.id %}">Löschen</a><br/>
-    <a href="{% url 'dkapp:contract_accounting_entry_new' contract.id %}">Buchung erstellen</a><br/>
-    <a href="{% url 'dkapp:contract_version_new' contract.id %}">Vertragsversion erstellen</a><br/>
-    <a href="{% url 'dkapp:accounting_entries' %}?contract_id={{contract.id}}">Kontoauszug</a><br/>
-
-    <hr>
-    <a href="{% url 'dkapp:contracts' %}">Alle Verträge</a><br/>
-    <a href="{% url 'dkapp:contacts' %}">Alle Kontakte</a>
+        <!-- Aktionen Card -->
+        <div class="card shadow-sm border-0 bg-primary text-white">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Schnellzugriff</h5>
+                <div class="d-grid gap-2">
+                    <a href="{% url 'dkapp:contract_accounting_entry_new' contract.id %}" class="btn btn-light text-primary fw-bold">
+                        <i class="bi bi-plus-circle me-2"></i> Neue Buchung
+                    </a>
+                    <a href="{% url 'dkapp:contract_version_new' contract.id %}" class="btn btn-light text-primary fw-bold">
+                        <i class="bi bi-file-earmark-plus me-2"></i> Neue Version
+                    </a>
+                    <a href="{% url 'dkapp:accounting_entries' %}?contract_id={{contract.id}}" class="btn btn-primary border-white">
+                        <i class="bi bi-list-check me-2"></i> Kontoauszug anzeigen
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

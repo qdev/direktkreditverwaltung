@@ -3,88 +3,119 @@
 {% block title %}Zinsen für das Jahr {{ current_year }}{% endblock %}
 
 {% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h3 mb-0">Zinsübersicht {{ current_year }}</h2>
+</div>
 
-
-    <h2> Zinsen für das Jahr {{ current_year }}</h2>
-    <h3>Jahr und Ausgabeformat</h3>
-
-    <form action="{% url 'dkapp:contracts_interest_filter' %}" method="post">
-        {% csrf_token %}
-        <input type="hidden" name="contact_id" value="{{ contact_id }}">
-        <label>Jahr: </label>
-        <select name='year'>
-            {% for year in all_years %}
-                {% if year == current_year %}
-                    <option value={{ year }} selected>{{ year }}</option>
-                {% else %}
-                    <option value={{ year }}>{{ year }}</option>
-                {% endif %}
-            {% endfor %}
-        </select>
-        <br/>
-
-        <label>Ausgabe: </label>
-        <select name='format'>
-            <option value="">Variante</option>
-            {% for format_key, format_value in all_formats.items %}
-                {% if format_key == current_format %}
-                    <option value={{ format_key }} selected>{{ format_value }}</option>
-                {% else %}
-                    <option value={{ format_key }}>{{ format_value }}</option>
-                {% endif %}
-            {% endfor %}
-        </select>
-
-        <input class="btn btn-success" type="submit" value="Anzeigen">
-    </form>
-    <br/>
-    {% for data in report.per_contract_data %}
-        {% if not contact_id or contact_id == data.contract.contact.number %}
-            <div class="mb-5">
-                <h3>
-                    Direktkreditvertrag {{ data.contract.contact.number|stringformat:"04d" }}-{{ data.contract.number|stringformat:"02d" }}
-                    ({{ data.contact }})</h3>
-                <br/>
-                <b>Zinsberechnung {{ current_year }}:</b><br/>
-                <table class='table'>
-                    <tr>
-                        <th>Datum</th>
-                        <th>Vorgang</th>
-                        <th>Betrag</th>
-                        <th>Zinssatz</th>
-                        <th>verbleibende Tage im Jahr</th>
-                        <th>Zinsen</th>
-                    </tr>
-                    {% for row in data.interest_rows %}
-                        <tr>
-                            <td>{{ row.date }}</td>
-                            <td>{{ row.label }}</td>
-                            <td>{{ row.amount | euro }}</td>
-                            <td>{{ row.interest_rate | fraction }}</td>
-                            <td>{{ row.days_left_in_year }}</td>
-                            <td>{{ row.interest | euro }}</td>
-                        </tr>
+<!-- Filter Section -->
+<div class="card shadow-sm mb-5">
+    <div class="card-header bg-white fw-bold py-3">
+        <i class="bi bi-calendar3 me-2 text-primary"></i>Zeitraum und Format wählen
+    </div>
+    <div class="card-body">
+        <form action="{% url 'dkapp:contracts_interest_filter' %}" method="post" class="row g-3 align-items-end">
+            {% csrf_token %}
+            <div class="col-md-3">
+                <label class="form-label small text-uppercase fw-bold text-muted">Jahr</label>
+                <select name='year' class="form-select">
+                    {% for year in all_years %}
+                        <option value="{{ year }}" {% if year == current_year %}selected{% endif %}>{{ year }}</option>
                     {% endfor %}
-                </table>
-                <b>Kontostand Ende {{ current_year }}:</b> {{ data.balance | euro }} <br/>
-                <b>Zinsen {{ current_year }}: {{ data.interest|euro }}</b><br/>
+                </select>
             </div>
-        {% endif %}
-    {% endfor %}
+            <div class="col-md-3">
+                <label class="form-label small text-uppercase fw-bold text-muted">Kontakt</label>
+                <select name='contact_id' class="form-select">
+                    <option value="">Alle Kontakte</option>
+                    {% for contact in all_contacts %}
+                        <option value="{{ contact.number }}" {% if contact.number == contact_id %}selected{% endif %}>
+                            {{ contact.number|stringformat:"04d" }} - {{ contact.last_name }}{% if contact.first_name %}, {{ contact.first_name }}{% endif %}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label small text-uppercase fw-bold text-muted">Ausgabe / Aktion</label>
+                <select name='format' class="form-select">
+                    <option value="">Anzeige im Browser</option>
+                    {% for format_key, format_value in all_formats.items %}
+                        <option value="{{ format_key }}" {% if format_key == current_format %}selected{% endif %}>{{ format_value }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button class="btn btn-primary px-4" type="submit">
+                    <i class="bi bi-play-fill me-1"></i> Ausführen
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 
-    <br/>
+{% for data in report.per_contract_data %}
+    {% if not contact_id or contact_id == data.contract.contact.number %}
+        <div class="card shadow-sm border-0 mb-4 overflow-hidden">
+            <div class="card-header bg-light d-flex justify-content-between align-items-center py-3">
+                <h3 class="h5 mb-0 fw-bold">
+                    <i class="bi bi-file-earmark-text me-2"></i>Vertrag {{ data.contract.contact.number|stringformat:"04d" }}-{{ data.contract.number|stringformat:"02d" }}
+                    <span class="text-muted ms-2 fs-6">({{ data.contact }})</span>
+                </h3>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 small">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Datum</th>
+                                <th>Vorgang</th>
+                                <th class="text-end">Betrag</th>
+                                <th class="text-center">Zinssatz</th>
+                                <th class="text-center">Tage</th>
+                                <th class="text-end">Zinsen</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in data.interest_rows %}
+                                <tr>
+                                    <td class="text-numeric">{{ row.date }}</td>
+                                    <td>{{ row.label }}</td>
+                                    <td class="text-end text-numeric">{{ row.amount | euro }}</td>
+                                    <td class="text-center text-numeric">{{ row.interest_rate | fraction }}</td>
+                                    <td class="text-center text-numeric">{{ row.days_left_in_year }}</td>
+                                    <td class="text-end text-numeric fw-bold">{{ row.interest | euro }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot class="table-light fw-bold">
+                            <tr>
+                                <td colspan="5" class="text-end">Gesamtzinsen {{ current_year }}:</td>
+                                <td class="text-end text-success">{{ data.interest|euro }}</td>
+                            </tr>
+                            <tr>
+                                <td colspan="5" class="text-end">Kontostand am 31.12.{{ current_year }}:</td>
+                                <td class="text-end text-primary">{{ data.balance | euro }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endfor %}
 
-    <table style="width: 100%;">
-        <tr>
-            <td style="text-align: left;">
-                <h3>Summe Zinsen</h3>
-                <b><u>{{ report.sum_interest | euro }}</u></b>
-            </td>
-            <td style="text-align: right;">
-                <h3>Summe Salden</h3>
-                <b><u>{{ report.sum_salden | euro }}</u></b>
-            </td>
-        </tr>
-    </table>
-
+<!-- Gesamtsummen Sticky Footer or Card -->
+<div class="card border-0 bg-dark text-white shadow shadow-lg mt-5">
+    <div class="card-body py-4">
+        <div class="row text-center">
+            <div class="col-md-6 border-end border-secondary">
+                <div class="text-uppercase small opacity-75 mb-1">Gesamtsumme Zinsen</div>
+                <div class="h2 fw-bold mb-0">{{ report.sum_interest | euro }}</div>
+            </div>
+            <div class="col-md-6">
+                <div class="text-uppercase small opacity-75 mb-1">Gesamtsumme Salden</div>
+                <div class="h2 fw-bold mb-0">{{ report.sum_salden | euro }}</div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

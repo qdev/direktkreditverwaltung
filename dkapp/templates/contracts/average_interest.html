@@ -3,38 +3,58 @@
 {% block title %}Durchschnittlicher Zinssatz{% endblock %}
 
 {% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h3 mb-0">Durchschnittlicher Zinssatz</h2>
+</div>
 
-<h2>Berechnung des durchschnittlichen Zinssatz</h2>
+<div class="row g-4 mb-5">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 bg-primary text-white">
+            <div class="card-body py-4 text-center">
+                <div class="text-uppercase small opacity-75 mb-1 text-white">Summe aller Direktkredite</div>
+                <div class="display-5 fw-bold mb-0 text-white">{{ report.sum_credit | euro }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 bg-success text-white">
+            <div class="card-body py-4 text-center">
+                <div class="text-uppercase small opacity-75 mb-1 text-white">Durchschnittlicher Zinssatz</div>
+                <div class="display-5 fw-bold mb-0 text-white">{{report.avg_interest_rate | fraction}}</div>
+            </div>
+        </div>
+    </div>
+</div>
 
-<h3>Aktuelle Summe aller Direktkredite: {{ report.sum_credit | euro }}</h3>
-
-<h3>Durchschnittlicher Zinssatz: {{report.avg_interest_rate | fraction}}</h3>
-
-<h3>Berechnung: </h3>
-<table class='table table-striped'>
-<tr>
-  <th>Vertrag</th>
-  <th>Kontostand</th>
-  <th>Anteil an Gesamtsumme</th>
-  <th>Zinssatz</th>
-  <th>Art der Verzinsung</th>
-  <th>Relativer Zinssatz</th>
-</tr>
-
-
-{% for data in report.per_contract_data %}
-  {% with last_version=data.contract.last_version %}
-    <tr>
-      <td>{{ data.contract }}</td>
-      <td>{{ data.balance | euro }}</td>
-      <td>{{ data.fraction_credit | fraction }}</td>
-      <td>{{ data.interest_rate | fraction }}</td>
-      <td>{{ data.interest_type }}</td>
-      <td>{{ data.relative_interest_rate | fraction }}</td>
-    </tr>
-  {% endwith %}
-{% endfor %}
-</table>
-<br/>
-
+<div class="card shadow-sm border-0 overflow-hidden">
+    <div class="card-header bg-white py-3 fw-bold">
+        <i class="bi bi-calculator me-2 text-primary"></i>Details der Berechnung
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 small">
+            <thead class="table-light">
+                <tr>
+                    <th>Vertrag</th>
+                    <th class="text-end">Kontostand</th>
+                    <th class="text-end">Anteil</th>
+                    <th class="text-center">Zinssatz</th>
+                    <th>Verzinsungsart</th>
+                    <th class="text-end">Rel. Zinssatz</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for data in report.per_contract_data %}
+                <tr>
+                    <td class="fw-bold">{{ data.contract }}</td>
+                    <td class="text-end text-numeric">{{ data.balance | euro }}</td>
+                    <td class="text-end text-numeric text-muted">{{ data.fraction_credit | fraction }}</td>
+                    <td class="text-center text-numeric text-success fw-bold">{{ data.interest_rate | fraction }}</td>
+                    <td><small class="text-muted">{{ data.interest_type }}</small></td>
+                    <td class="text-end text-numeric fw-bold">{{ data.relative_interest_rate | fraction }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 {% endblock %}

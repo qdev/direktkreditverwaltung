@@ -1,70 +1,106 @@
 {% extends "base.html" %}
-{% block title %}Kontakt {{contact.last_name}}{% endblock %}
+{% block title %}Kontakt {{contact.full_name}}{% endblock %}
 
 {% block content %}
-
-{% if error_message %}<div><strong>{{ error_message }}</strong></div>{% endif %}
-
-<div>
-  <b>Nummer:</b>
-  {{contact.number|stringformat:"04d"}}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="{% url 'dkapp:contacts' %}">Kontakte</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{contact.full_name}}</li>
+        </ol>
+    </nav>
+    <div class="btn-group">
+        <a href="{% url 'dkapp:contact_edit' contact.id %}" class="btn btn-outline-secondary">
+            <i class="bi bi-pencil me-1"></i> Editieren
+        </a>
+        <a href="{% url 'dkapp:contact_delete' contact.id %}" class="btn btn-outline-danger">
+            <i class="bi bi-trash me-1"></i> Löschen
+        </a>
+    </div>
 </div>
 
-<div>
-  <b>Name:</b>
-  {{contact.last_name}}
+{% if error_message %}
+<div class="alert alert-danger shadow-sm">
+    <i class="bi bi-exclamation-triangle me-2"></i> {{ error_message }}
 </div>
+{% endif %}
 
-<div>
-  <b>Vorname:</b>
-  {{contact.first_name}}
-</div>
+<div class="row g-4">
+    <!-- Stammdaten & Adresse -->
+    <div class="col-md-6">
+        <div class="card shadow-sm h-100 border-0">
+            <div class="card-header bg-white fw-bold py-3">
+                <i class="bi bi-person-bounding-box me-2 text-primary"></i>Personenbezogene Daten
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted small">Nummer</div>
+                    <div class="col-sm-8 fw-bold text-numeric">{{contact.number|stringformat:"04d"}}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted small">Name</div>
+                    <div class="col-sm-8 h5 mb-0 fw-bold">{{contact.first_name}} {{contact.last_name}}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted small">Adresse</div>
+                    <div class="col-sm-8">{{contact.address|linebreaksbr}}</div>
+                </div>
+                <hr class="text-muted opacity-25">
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted small"><i class="bi bi-envelope me-1"></i> E-Mail</div>
+                    <div class="col-sm-8">{% if contact.email %}<a href="mailto:{{contact.email}}">{{contact.email}}</a>{% else %}-{% endif %}</div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-4 text-muted small"><i class="bi bi-telephone me-1"></i> Telefon</div>
+                    <div class="col-sm-8">{{contact.phone|default:"-"}}</div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<div>
-  <b>Adresse:</b>
-  {{contact.address}}
-</div>
+    <!-- Bankverbindung & Buchung -->
+    <div class="col-md-6">
+        <div class="card shadow-sm mb-4 border-0">
+            <div class="card-header bg-white fw-bold py-3">
+                <i class="bi bi-bank me-2 text-primary"></i>Bankverbindung & Buchung
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted small">Bankname</div>
+                    <div class="col-sm-8">{{contact.bank_name|default:"-"}}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted small">IBAN</div>
+                    <div class="col-sm-8 text-numeric fw-bold">{{contact.iban|default:"-"}}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted small">BIC</div>
+                    <div class="col-sm-8 text-numeric">{{contact.bic|default:"-"}}</div>
+                </div>
+                <hr class="text-muted opacity-25">
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted small">Buchungskonto</div>
+                    <div class="col-sm-8 text-numeric">{{contact.creditor_account|default:"-"}}</div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-4 text-muted small">Bemerkung</div>
+                    <div class="col-sm-8 small text-muted">{{contact.remark|default:"-"}}</div>
+                </div>
+            </div>
+        </div>
 
-<div>
-  <b>E-Mail:</b>
-  {{contact.email}}
-</div>
-
-<div>
-  <b>Telefonnummer:</b>
-  {{contact.phone}}
-</div>
-
-<div>
-  <b>IBAN:</b>
-  {{contact.iban}}
-</div>
-
-<div>
-  <b>BIC:</b>
-  {{contact.bic}}
-</div>
-
-<div>
-  <b>Bankname:</b>
-  {{contact.bank_name}}
-</div>
-
-<div>
-  <b>Bemerkung:</b>
-  {{contact.remark}}
-</div>
-    
-<div>
-  <b>Buchungskonto:</b>
-  {{contact.creditor_account}}
-</div>
-
-<div>
-    <a href="{% url 'dkapp:contact_edit' contact.id %}">Editieren</a></br>
-    <a href="{% url 'dkapp:contact_delete' contact.id %}">Löschen</a></br>
-    <a href="{% url 'dkapp:contracts' %}?contact_id={{ contact.id | urlencode}}">Direktkreditverträge</a></br>
-    <hr/>
-    <a href="{% url 'dkapp:contacts' %}">Alle Kontakte</a>
+        <!-- Verträge Link -->
+        <div class="card shadow-sm border-0 bg-success text-white">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="card-title mb-1">Verträge</h5>
+                    <p class="card-text small mb-0">Zugehörige Direktkreditverträge anzeigen.</p>
+                </div>
+                <a href="{% url 'dkapp:contracts' %}?contact_id={{ contact.id | urlencode}}" class="btn btn-light text-success fw-bold">
+                    Ansehen <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

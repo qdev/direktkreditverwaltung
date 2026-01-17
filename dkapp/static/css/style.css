@@ -1,23 +1,47 @@
+/* Grundlegende Stil-Anpassungen */
+body {
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
 a {
-    color: green;
+    color: #198754; /* Bootstrap success color for a fresh look */
+    text-decoration: none;
 }
 
-div.container {
-  max-width: 100%;
+a:hover {
+    color: #157347;
+    text-decoration: underline;
 }
 
+.container-xl {
+    background-color: #ffffff;
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    margin-top: 1rem;
+}
+
+/* Tabellen-Optimierung */
+.table {
+    font-size: 0.95rem;
+}
+
+.table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+}
+
+/* Formular-Optimierung */
 div.dkapp-form {
-  display: flex;
-  flex-flow: column;
-  max-width: 400px;
-  margin: 10px 0;
-
-}
-div.dkapp-form input,textarea,select {
-  margin-bottom: 20px;
+    max-width: 600px;
 }
 
-table {
-  max-width: 100%;
-  font-size: smaller;
+.btn-action {
+    white-space: nowrap;
+}
+
+/* Hilfsklassen */
+.text-numeric {
+    font-variant-numeric: tabular-nums;
 }

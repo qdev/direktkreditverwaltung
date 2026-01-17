@@ -1,51 +1,78 @@
 {% extends "base.html" %}
 {% load my_filters %}
-{% block title %}Übersicht Direktkreditverträge, sortiert nach Restlaufzeit{% endblock %}
+{% block title %}Restlaufzeiten{% endblock %}
 
 {% block content %}
-
-<h2>Übersicht Direktkreditverträge, sortiert nach Restlaufzeit</h2>
-
-Die Ergebnisse dieser Auswertung werden in der Offenlegung im E-Bundesanzeiger verwendet.
-
-Wähle das Jahr der Offenlegung (Stichtag 31.12.)
-
-<h4>Jahr</h4>
-
-<form action="{% url 'dkapp:contracts_remaining' %}" method="post">
-  {% csrf_token %}
-  <select name='year'>
-    {% for year in all_years %}
-      {% if year == current_year %}
-        <option value={{year}} selected>{{year}}</option>
-      {% else %}
-        <option value={{year}}>{{year}}</option>
-      {% endif %}
-    {% endfor %}
-  </select>
-  <input class="btn btn-success" type="submit" value="Anzeigen">
-</from>
-
-<br/>
-
-
-<div>
-  <h3>Restlaufzeit mehr als fünf Jahre zum {{cutoff_date | date:"SHORT_DATE_FORMAT" }}</h3>
-  {% include "contracts/remaining_snippet.html" with report_part=report.more_than_five %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h3 mb-0">Restlaufzeiten in Kategorien</h2>
 </div>
 
-<br/>
-<div>
-  <h3>Restlaufzeit zwischen einem und fünf Jahren zum {{cutoff_date | date:"SHORT_DATE_FORMAT" }}</h3>
-  {% include "contracts/remaining_snippet.html" with report_part=report.between_one_and_five %}
+<div class="card shadow-sm mb-5 border-0 bg-light">
+    <div class="card-body">
+        <p class="small text-muted mb-3">
+            <i class="bi bi-info-circle me-1"></i> Diese Auswertung wird für die Offenlegung im E-Bundesanzeiger verwendet.
+        </p>
+        <form action="{% url 'dkapp:contracts_remaining' %}" method="post" class="row g-3 align-items-center">
+            {% csrf_token %}
+            <div class="col-auto">
+                <label class="fw-bold text-muted small text-uppercase">Stichtag (31.12.) für Jahr:</label>
+            </div>
+            <div class="col-auto">
+                <select name='year' class="form-select form-select-sm">
+                    {% for year in all_years %}
+                        <option value="{{year}}" {% if year == current_year %}selected{% endif %}>{{year}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-primary btn-sm px-3" type="submit">Anzeigen</button>
+            </div>
+        </form>
+    </div>
 </div>
 
-<br/>
-<div>
-  <h3>Restlaufzeit bis zu einem Jahr zum {{cutoff_date | date:"SHORT_DATE_FORMAT" }}</h3>
-  {% include "contracts/remaining_snippet.html" with report_part=report.less_than_one %}
+<div class="row g-4">
+    <div class="col-12">
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3 border-bottom-0">
+                <h3 class="h5 mb-0 fw-bold text-primary">
+                    <i class="bi bi-hourglass-bottom me-2"></i>Restlaufzeit bis zu einem Jahr
+                    <small class="text-muted fw-normal ms-2">zum {{cutoff_date | date:"SHORT_DATE_FORMAT" }}</small>
+                </h3>
+            </div>
+            <div class="card-body p-0">
+                {% include "contracts/remaining_snippet.html" with report_part=report.less_than_one %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3 border-bottom-0">
+                <h3 class="h5 mb-0 fw-bold text-primary">
+                    <i class="bi bi-hourglass-split me-2"></i>Restlaufzeit zwischen einem und fünf Jahren
+                    <small class="text-muted fw-normal ms-2">zum {{cutoff_date | date:"SHORT_DATE_FORMAT" }}</small>
+                </h3>
+            </div>
+            <div class="card-body p-0">
+                {% include "contracts/remaining_snippet.html" with report_part=report.between_one_and_five %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white py-3 border-bottom-0">
+                <h3 class="h5 mb-0 fw-bold text-primary">
+                    <i class="bi bi-hourglass-top me-2"></i>Restlaufzeit mehr als fünf Jahre
+                    <small class="text-muted fw-normal ms-2">zum {{cutoff_date | date:"SHORT_DATE_FORMAT" }}</small>
+                </h3>
+            </div>
+            <div class="card-body p-0">
+                {% include "contracts/remaining_snippet.html" with report_part=report.more_than_five %}
+            </div>
+        </div>
+    </div>
 </div>
-
-
 
 {% endblock %}

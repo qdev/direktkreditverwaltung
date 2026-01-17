@@ -2,49 +2,71 @@
 {% block title %}Kontakte{% endblock %}
 
 {% block content %}
-
-<h2>Übersicht Kontakte</h2>
-
-<a href="{% url 'dkapp:contacts_new' %}">Neuen Kontakt erstellen</a>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h3 mb-0">Übersicht Kontakte</h2>
+    <a href="{% url 'dkapp:contacts_new' %}" class="btn btn-primary">
+        <i class="bi bi-person-plus"></i> Neuer Kontakt
+    </a>
+</div>
 
 {% if contacts %}
-    <table class='table table-striped'>
-      <tr>
-        <th>Nummer</th>
-        <th>Name</th>
-        <th>Vorname</th>
-        <th>Adresse</th>
-        <th>E-Mail</th>
-        <th>Telefon</th>
-        <th>Kontonummer</th>
-        <th>BLZ</th>
-        <th>Bankname</th>
-        <th>Bemerkung</th>
-        <th>Buchungskonto</th>
-        <th></th>
-        <th></th>
-      </tr>
-
-      {% for contact in contacts %}
-          <tr>
-              <td>{{contact.number|stringformat:"04d"}}</td>
-              <td>{{contact.last_name}}</td>
-              <td>{{contact.first_name}}</td>
-              <td>{{contact.address}}</td>
-              <td>{{contact.email}}</td>
-              <td>{{contact.phone}}</td>
-              <td>{{contact.iban}}</td>
-              <td>{{contact.bic}}</td>
-              <td>{{contact.bank_name}}</td>
-              <td>{{contact.remark}}</td>
-              <td>{{contact.creditor_account}}</td>
-              <td><a href="{% url 'dkapp:contact' contact.id %}">Anzeigen</a></td>
-              <td><a href="{% url 'dkapp:contact_edit' contact.id %}">Editieren</a></td>
-          </tr>
-      {% endfor %}
-    </table>
+<div class="card shadow-sm border-0">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Nr.</th>
+                    <th>Name</th>
+                    <th>Vorname</th>
+                    <th>Adresse</th>
+                    <th>Kontaktinfo</th>
+                    <th>Bankverbindung</th>
+                    <th class="text-end">Aktionen</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for contact in contacts %}
+                <tr>
+                    <td class="text-numeric fw-bold">{{contact.number|stringformat:"04d"}}</td>
+                    <td class="fw-bold">{{contact.last_name}}</td>
+                    <td>{{contact.first_name}}</td>
+                    <td>
+                        <small class="text-muted d-block text-truncate" style="max-width: 200px;" title="{{contact.address}}">
+                            {{contact.address}}
+                        </small>
+                    </td>
+                    <td>
+                        {% if contact.email %}
+                            <div class="small"><i class="bi bi-envelope me-1"></i> {{contact.email}}</div>
+                        {% endif %}
+                        {% if contact.phone %}
+                            <div class="small text-muted"><i class="bi bi-telephone me-1"></i> {{contact.phone}}</div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <small class="text-muted text-numeric d-block">{{contact.iban|default:""}}</small>
+                        <small class="text-muted">{{contact.bank_name|default:""}}</small>
+                    </td>
+                    <td class="text-end">
+                        <div class="btn-group btn-group-sm">
+                            <a href="{% url 'dkapp:contact' contact.id %}" class="btn btn-outline-primary" title="Anzeigen">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a href="{% url 'dkapp:contact_edit' contact.id %}" class="btn btn-outline-secondary" title="Editieren">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 {% else %}
-    <p>Du hast noch keine Kontakte eingetragen</p>
+<div class="alert alert-info shadow-sm">
+    <i class="bi bi-info-circle me-2"></i> Du hast noch keine Kontakte eingetragen.
+</div>
 {% endif %}
 
 {% endblock %}

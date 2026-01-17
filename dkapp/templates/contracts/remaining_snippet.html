@@ -1,21 +1,34 @@
 {% load my_filters %}
-<table class='table table-striped'>
-  <tr>
-    <th>Ablaufdatum</th>
-    <th>Nummer</th>
-    <th>Kontakt</th>
-    <th>Kontostand</th>
-    <th></th>
-  </tr>
-
-{% for contract, balance in report_part.contracts %}
-  <tr>
-    <td>{{ contract.expiring | date:"SHORT_DATE_FORMAT"  }}</td>
-    <td>{{ contract.number }}</td>
-    <td>{{ contract }}</td>
-    <td>{{ balance | euro }}</td>
-    <td><a href="{% url 'dkapp:contract' contract.id %}">Anzeigen</a></td>
-  </tr>
-{% endfor %}
-</table>
-<b>Sum: {{report_part.balance_sum | euro }}</b>
+<div class="table-responsive">
+    <table class="table table-hover align-middle mb-0 small">
+        <thead class="table-light">
+            <tr>
+                <th>Ablaufdatum</th>
+                <th>Nummer</th>
+                <th>Kontakt</th>
+                <th class="text-end">Kontostand</th>
+                <th class="text-end">Aktion</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for contract, balance in report_part.contracts %}
+            <tr>
+                <td class="text-numeric">{{ contract.expiring | date:"SHORT_DATE_FORMAT" }}</td>
+                <td class="text-numeric">{{ contract.number }}</td>
+                <td>{{ contract }}</td>
+                <td class="text-end text-numeric fw-bold">{{ balance | euro }}</td>
+                <td class="text-end">
+                    <a href="{% url 'dkapp:contract' contract.id %}" class="btn btn-sm btn-outline-primary py-0">Details</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot class="table-light">
+            <tr>
+                <td colspan="3" class="text-end fw-bold">Summe:</td>
+                <td class="text-end fw-bold text-primary text-numeric">{{ report_part.balance_sum | euro }}</td>
+                <td></td>
+            </tr>
+        </tfoot>
+    </table>
+</div>

@@ -1,12 +1,63 @@
 {% extends "base.html" %}
 
 {% block content %}
-<form action={{ action_url }} method="post">
-{% csrf_token %}
-<div class='dkapp-form'>
-    {{form}}
-</div>
-<button class="btn btn-success" type="Submit">Speichern</button>
-</from>
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <h2 class="h5 mb-0 fw-bold text-primary">
+                    {% if "edit" in request.path %}Bearbeiten{% else %}Neu erstellen{% endif %}
+                </h2>
+            </div>
+            <div class="card-body p-4">
+                <form action="{{ action_url }}" method="post">
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
 
+                    <div class="mb-4">
+                        {% for field in form %}
+                            <div class="mb-3">
+                                <label for="{{ field.id_for_label }}" class="form-label fw-semibold small text-muted text-uppercase mb-1">
+                                    {{ field.label }}
+                                </label>
+                                {{ field }}
+                                {% if field.help_text %}
+                                    <div class="form-text small">{{ field.help_text }}</div>
+                                {% endif %}
+                                {% for error in field.errors %}
+                                    <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" class="btn btn-outline-secondary px-4 me-md-2" onclick="history.back()">Abbrechen</button>
+                        <button class="btn btn-primary px-5" type="submit">Speichern</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Automatisches Hinzufügen von Bootstrap-Klassen zu Formular-Feldern
+    document.querySelectorAll('input, select, textarea').forEach(function(el) {
+        if (!el.classList.contains('form-check-input')) {
+            el.classList.add('form-control');
+        }
+        if (el.tagName === 'SELECT') {
+            el.classList.remove('form-control');
+            el.classList.add('form-select');
+        }
+    });
+</script>
 {% endblock %}

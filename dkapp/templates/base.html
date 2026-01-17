@@ -1,50 +1,59 @@
 {% load static %}
 
 <!DOCTYPE html>
-<html>
+<html lang="de">
 <head>
-  <link rel="stylesheet" href="{% static 'vendor/css/bootstrap.min.css' %}">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
   <link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
-  <script src="{% static 'vendor/js/bootstrap-native.min.js' %}" ></script>
   <title>{% block title %}Direktkreditverwaltung{% endblock %}</title>
 </head>
-<body>
-  <nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <a class="navbar-brand" href="{% url 'dkapp:index' %}">Start</a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
+<body class="bg-light">
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top shadow-sm mb-4">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="{% url 'dkapp:index' %}">
+        <i class="bi bi-bank"></i> DK-Verwaltung
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
 
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-      <ul class="navbar-nav mr-auto">
-        <li class="nav-item">
-          <a class="nav-link" href="{% url 'dkapp:contacts' %}">Kontakte</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{% url 'dkapp:contracts' %}">Verträge</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="{% url 'dkapp:accounting_entries' %}">Buchungen</a>
-        </li>
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            Auswertungen
-          </a>
-          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-            <a class="dropdown-item" href="{% url 'dkapp:contracts_interest' %}">Zinsen</a>
-            <a class="dropdown-item" href="{% url 'dkapp:contracts_interest_transfer_list' %}">Zinsüberweisungsliste</a>
-            <a class="dropdown-item" href="{% url 'dkapp:contracts_interest_average' %}">Durchschnittlicher Zinssatz</a>
-            <a class="dropdown-item" href="{% url 'dkapp:contracts_expiring' %}">Auslaufende Verträge</a>
-            <a class="dropdown-item" href="{% url 'dkapp:contracts_remaining' %}">Restlaufzeiten in Kategorien</a>
-          </div>
-        </li>
-      </ul>
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'dkapp:contacts' %}">Kontakte</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'dkapp:contracts' %}">Verträge</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'dkapp:accounting_entries' %}">Buchungen</a>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Auswertungen
+            </a>
+            <ul class="dropdown-menu shadow" aria-labelledby="navbarDropdown">
+              <li><a class="dropdown-item" href="{% url 'dkapp:contracts_interest' %}">Zinsen</a></li>
+              <li><a class="dropdown-item" href="{% url 'dkapp:contracts_interest_transfer_list' %}">Zinsüberweisungsliste</a></li>
+              <li><a class="dropdown-item" href="{% url 'dkapp:contracts_interest_average' %}">Durchschnittlicher Zinssatz</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="{% url 'dkapp:contracts_expiring' %}">Auslaufende Verträge</a></li>
+              <li><a class="dropdown-item" href="{% url 'dkapp:contracts_remaining' %}">Restlaufzeiten</a></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
     </div>
   </nav>
-  <div class="container">
-    <h1>Direktkreditverwaltung</h1>
+
+  <div class="container-xl pb-5">
     {% block content %}
     {% endblock %}
   </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

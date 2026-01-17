@@ -3,38 +3,58 @@
 {% block title %}Vertragsversionen{% endblock %}
 
 {% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h3 mb-0">Übersicht Vertragsversionen</h2>
+</div>
 
-<h2>Übersicht Vertragsversionen</h2>
-
-<table class='table table-striped'>
 {% if contract_versions %}
-    <table class='table'>
-      <tr>
-        <th>Vertrag</th>
-        <th>Version</th>
-        <th>Start</th>
-        <th>Laufzeit in Monaten</th>
-        <th>Kündigungsfrist in Monaten</th>
-        <th>Zinssatz</th>
-        <th></th>
-        <th></th>
-      </tr>
-
-      {% for contract_version in contract_versions %}
-          <tr>
-              <td>{{contract_version.contract}}</td>
-              <td>{{contract_version.version}}</td>
-              <td>{{contract_version.start | date:"SHORT_DATE_FORMAT"}}</td>
-              <td>{{contract_version.duration_months | default_if_none:'-'}}</td>
-              <td>{{contract_version.cancellation_months | default_if_none:'-'}}</td>
-              <td>{{contract_version.interest_rate | fraction }}</td>
-              <td><a href="{% url 'dkapp:contract_version' contract_version.id %}">Anzeigen</a></td>
-              <td><a href="{% url 'dkapp:contract_version_edit' contract_version.id %}">Editieren</a></td>
-          </tr>
-      {% endfor %}
-    </table>
+<div class="card shadow-sm border-0">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Vertrag</th>
+                    <th class="text-center">Ver.</th>
+                    <th>Start</th>
+                    <th class="text-center">Dauer (Mon.)</th>
+                    <th class="text-center">Kündig. (Mon.)</th>
+                    <th class="text-end">Zinssatz</th>
+                    <th class="text-end">Aktionen</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for contract_version in contract_versions %}
+                <tr>
+                    <td>
+                        <a href="{% url 'dkapp:contract' contract_version.contract.id %}" class="fw-bold text-decoration-none">
+                            <i class="bi bi-file-earmark-text small me-1"></i>{{contract_version.contract}}
+                        </a>
+                    </td>
+                    <td class="text-center"><span class="badge bg-secondary rounded-pill">{{contract_version.version}}</span></td>
+                    <td class="text-numeric">{{contract_version.start | date:"SHORT_DATE_FORMAT"}}</td>
+                    <td class="text-center text-numeric">{{contract_version.duration_months | default_if_none:'-'}}</td>
+                    <td class="text-center text-numeric">{{contract_version.cancellation_months | default_if_none:'-'}}</td>
+                    <td class="text-end text-numeric text-success fw-bold">{{contract_version.interest_rate | fraction }}</td>
+                    <td class="text-end">
+                        <div class="btn-group btn-group-sm">
+                            <a href="{% url 'dkapp:contract_version' contract_version.id %}" class="btn btn-outline-primary" title="Anzeigen">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a href="{% url 'dkapp:contract_version_edit' contract_version.id %}" class="btn btn-outline-secondary" title="Editieren">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 {% else %}
-    <p>Keine Vertragsversion vorhanden. Das ist ein Bug. Beim Erstellen des Vertrags sollte die erste Version erstellt werden.</p>
+<div class="alert alert-warning shadow-sm">
+    <i class="bi bi-exclamation-triangle me-2"></i> Keine Vertragsversionen vorhanden.
+</div>
 {% endif %}
 
 {% endblock %}

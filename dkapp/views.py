@@ -150,6 +150,7 @@ class ContractsInterest(generic.TemplateView):
                 'contact_id': contact_id,
                 'all_years': list(range(this_year, 2012, -1)),
                 'all_formats': self.OUTPUT_FORMATS,
+                'all_contacts': Contact.objects.all().order_by('number'),
                 'report': report,
             })
         elif format == OUTPUT_FORMATS_ENUM.OVERVIEW.value:
@@ -188,8 +189,10 @@ class ContractsInterestTransferListView(generic.TemplateView):
     def get(self, request):
         this_year = datetime.now().year
         year = int(request.GET.get('year') or this_year)
+        ci = request.GET.get('contact_id')
+        contact_id = int(ci) if ci else ''
 
-        report = InterestTransferListReport.create(year, None)
+        report = InterestTransferListReport.create(year, ci)
 
         filtered_per_contract_data = [
             d for d in report.per_contract_data
@@ -202,7 +205,9 @@ class ContractsInterestTransferListView(generic.TemplateView):
 
         return render(request, self.template_name, {
             'current_year': year,
+            'contact_id': contact_id,
             'all_years': list(range(this_year, this_year - 10, -1)),
+            'all_contacts': Contact.objects.all().order_by('number'),
             'report': report,
             'per_contract_data': filtered_per_contract_data,
             'sum_interest': round(sum_interest_filtered, 2),
@@ -211,8 +216,9 @@ class ContractsInterestTransferListView(generic.TemplateView):
 
     def post(self, request):
         year = request.POST.get('year')
+        contact_id = request.POST.get('contact_id') or ''
         return HttpResponseRedirect(
-            reverse('dkapp:contracts_interest_transfer_list') + f"?year={year}"
+            reverse('dkapp:contracts_interest_transfer_list') + f"?year={year}&contact_id={contact_id}"
         )
 
 

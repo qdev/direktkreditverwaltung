@@ -3,51 +3,100 @@
 {% block title %}Zinsüberweisungsliste{% endblock %}
 
 {% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h3 mb-0">Zinsüberweisungsliste {{ current_year }}</h2>
+</div>
 
-    <h2>Überweisungsliste der Zinsen für das Jahr {{ current_year }}</h2>
+<!-- Jahr Filter -->
+<div class="card shadow-sm mb-5 border-0 bg-light">
+    <div class="card-body">
+        <form action="{% url 'dkapp:contracts_interest_transfer_list' %}" method="post" class="row g-3 align-items-center">
+            {% csrf_token %}
+            <div class="col-auto">
+                <label class="fw-bold text-muted small text-uppercase">Jahr wählen:</label>
+            </div>
+            <div class="col-auto">
+                <select name='year' class="form-select form-select-sm">
+                    {% for year in all_years %}
+                        <option value="{{ year }}" {% if year == current_year %}selected{% endif %}>{{ year }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-auto">
+                <label class="fw-bold text-muted small text-uppercase">Kontakt:</label>
+            </div>
+            <div class="col-auto">
+                <select name='contact_id' class="form-select form-select-sm">
+                    <option value="">Alle Kontakte</option>
+                    {% for contact in all_contacts %}
+                        <option value="{{ contact.number }}" {% if contact.number == contact_id %}selected{% endif %}>
+                            {{ contact.number|stringformat:"04d" }} - {{ contact.last_name }}{% if contact.first_name %}, {{ contact.first_name }}{% endif %}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-primary btn-sm px-3" type="submit">Anzeigen</button>
+            </div>
+        </form>
+    </div>
+</div>
 
-    <h4>Jahr</h4>
+{% if per_contract_data %}
+<div class="card shadow-sm border-0 mb-5">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Vertrag / Kontakt</th>
+                    <th class="text-end">Zinsen {{ current_year }}</th>
+                    <th>Bankverbindung</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for data in per_contract_data %}
+                <tr>
+                    <td>
+                        <div class="fw-bold">{{ data.contact.number|stringformat:"04d" }}-{{ data.contract.number|stringformat:"02d" }}</div>
+                        <div class="small text-muted">{{ data.contact }}</div>
+                    </td>
+                    <td class="text-end fw-bold text-success text-numeric">
+                        {{ data.interest|euro }}
+                    </td>
+                    <td>
+                        <div class="small text-numeric"><strong>IBAN:</strong> {{ data.contact.iban }}</div>
+                        <div class="small text-numeric text-muted"><strong>BIC:</strong> {{ data.contact.bic }} | {{ data.contact.bank_name }}</div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-info shadow-sm">
+    <i class="bi bi-info-circle me-2"></i> Keine Zinsüberweisungen für dieses Jahr gefunden.
+</div>
+{% endif %}
 
-    <form action="{% url 'dkapp:contracts_interest_transfer_list' %}" method="post">
-    {% csrf_token %}
-    <select name='year'>
-        {% for year in all_years %}
-            {% if year == current_year %}
-                <option value={{ year }} selected>{{ year }}</option>
-            {% else %}
-                <option value={{ year }}>{{ year }}</option>
-            {% endif %}
-        {% endfor %}
-    </select>
-    <input class="btn btn-success" type="submit" value="Anzeigen">
-    </form>
-
-    <br/>
-
-    {% for data in per_contract_data %}
-        <div class="mb-3">
-            <h3>
-                Direktkreditvertrag {{ data.contact.number|stringformat:"04d" }}-{{ data.contract.number|stringformat:"02d" }}
-                ({{ data.contact }})</h3>
-            <b>Zinsen {{ current_year }}: {{ data.interest|euro }}</b><br/>
-            <b>IBAN: </b>{{ data.contact.iban }}<br/>
-            <b>BIC: </b>{{ data.contact.bic }}<br/>
-            <b>Bank: </b>{{ data.contact.bank_name }}<br/>
+<!-- Summen-Zusammenfassung -->
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 bg-white border-start border-success border-4 h-100">
+            <div class="card-body">
+                <h3 class="h6 text-muted text-uppercase fw-bold mb-2">Summe Zinsen</h3>
+                <p class="h3 fw-bold mb-0">{{ sum_interest | euro }}</p>
+            </div>
         </div>
-    {% endfor %}
-
-    <br/>
-    <table width="100%">
-        <tr>
-            <td align=left>
-                <h2>Summe Zinsen</h2>
-                <b><u>{{ sum_interest | euro }}</u></b>
-            </td>
-            <td align=right>
-                <h2>Summe Salden</h2>
-                <b><u>{{ sum_salden | euro }}</u></b>
-            </td>
-        </tr>
-    </table>
+    </div>
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 bg-white border-start border-primary border-4 h-100">
+            <div class="card-body">
+                <h3 class="h6 text-muted text-uppercase fw-bold mb-2">Summe Salden</h3>
+                <p class="h3 fw-bold mb-0">{{ sum_salden | euro }}</p>
+            </div>
+        </div>
+    </div>
+</div>
 
 {% endblock %}

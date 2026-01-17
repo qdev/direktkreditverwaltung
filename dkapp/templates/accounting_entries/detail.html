@@ -3,47 +3,98 @@
 {% block title %}Buchung: {{accountingentry.id}}{% endblock %}
 
 {% block content %}
-
-{% if error_message %}<div><strong>{{ error_message }}</strong></div>{% endif %}
-
-<div>
-  <b>Vertrag:</b>
-  <a href="{% url 'dkapp:contract' accountingentry.contract.id %}">
-    {{accountingentry.contract}}
-  </a>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="{% url 'dkapp:accounting_entries' %}">Buchungen</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Buchung #{{accountingentry.id}}</li>
+        </ol>
+    </nav>
+    <div class="btn-group">
+        <a href="{% url 'dkapp:accounting_entry_edit' accountingentry.id %}" class="btn btn-outline-secondary">
+            <i class="bi bi-pencil me-1"></i> Editieren
+        </a>
+        <a href="{% url 'dkapp:accounting_entry_delete' accountingentry.id %}" class="btn btn-outline-danger">
+            <i class="bi bi-trash me-1"></i> Löschen
+        </a>
+    </div>
 </div>
 
-<div>
-  <b>Vorgang:</b>
-  {{accountingentry.type}}
+{% if error_message %}
+<div class="alert alert-danger shadow-sm">
+    <i class="bi bi-exclamation-triangle me-2"></i> {{ error_message }}
 </div>
+{% endif %}
 
-<div>
-  <b>Datum:</b>
-  {{accountingentry.date | date:"SHORT_DATE_FORMAT"}}
-</div>
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <h2 class="h5 mb-0 fw-bold">
+                    <i class="bi bi-receipt me-2 text-primary"></i>Buchungsdetails
+                </h2>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-sm-4 text-muted small text-uppercase fw-bold">Vertrag</div>
+                    <div class="col-sm-8 h5 mb-0">
+                        <a href="{% url 'dkapp:contract' accountingentry.contract.id %}" class="text-decoration-none">
+                            <i class="bi bi-file-earmark-text small me-1"></i>{{accountingentry.contract}}
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted small text-uppercase fw-bold">Vorgang</div>
+                    <div class="col-sm-8">
+                        {% if accountingentry.type == 'Einzahlung' %}
+                            <span class="badge bg-success px-3">Einzahlung</span>
+                        {% elif accountingentry.type == 'Auszahlung' %}
+                            <span class="badge bg-danger px-3">Auszahlung</span>
+                        {% else %}
+                            <span class="badge bg-info px-3">{{accountingentry.type}}</span>
+                        {% endif %}
+                    </div>
+                </div>
 
-<div>
-  <b>Betrag:</b>
-  {{accountingentry.amount | euro}}
-</div>
-<div>
-  <b>Zinsbuchung:</b>
-  <input type="checkbox" {% if accounting_entry.interest_relevant %}checked{% endif %} disabled>
-</div>
-<div>
-  <b>Buchungstext:</b>
-  {{accountingentry.comment}}
-</div>
-<br/>
-<div>
-    <a href="{% url 'dkapp:accounting_entry_edit' accountingentry.id %}">Editieren</a><br/>
-    <a href="{% url 'dkapp:accounting_entry_delete' accountingentry.id %}">Löschen</a><br/>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted small text-uppercase fw-bold">Datum</div>
+                    <div class="col-sm-8 text-numeric">{{accountingentry.date | date:"SHORT_DATE_FORMAT"}}</div>
+                </div>
 
-    <hr>
-    <a href="{% url 'dkapp:accounting_entries' %}">Alle Buchungen</a><br/>
-    <a href="{% url 'dkapp:contract_versions' %}">Alle Vertragsversionen</a><br/>
-    <a href="{% url 'dkapp:contracts' %}">Alle Verträge</a><br/>
-    <a href="{% url 'dkapp:contacts' %}">Alle Kontakte</a>
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted small text-uppercase fw-bold">Betrag</div>
+                    <div class="col-sm-8 h4 mb-0 fw-bold text-numeric text-primary">{{accountingentry.amount | euro}}</div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-sm-4 text-muted small text-uppercase fw-bold">Zinsrelevant</div>
+                    <div class="col-sm-8">
+                        {% if accountingentry.interest_relevant %}
+                            <i class="bi bi-check-circle-fill text-success fs-5"></i> <span class="ms-1 small text-success">Ja</span>
+                        {% else %}
+                            <i class="bi bi-dash-circle text-muted fs-5"></i> <span class="ms-1 small text-muted">Nein</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <hr class="text-muted opacity-25">
+
+                <div class="row">
+                    <div class="col-sm-4 text-muted small text-uppercase fw-bold">Buchungstext</div>
+                    <div class="col-sm-8 text-muted">
+                        {{accountingentry.comment|default:"<em>Kein Text vorhanden.</em>"|safe}}
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-light py-3">
+                <div class="d-flex justify-content-center">
+                    <a href="{% url 'dkapp:accounting_entries' %}" class="btn btn-link btn-sm text-secondary text-decoration-none">
+                        <i class="bi bi-arrow-left me-1"></i> Zurück zur Übersicht
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
