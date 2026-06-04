@@ -24,7 +24,7 @@ class AverageInterestRateReport:
             FractionPerContract(
                 contract=contract,
                 balance=balance,
-                fraction_credit=(fraction := balance / sum_credit),
+                fraction_credit=(fraction := balance / sum_credit if sum_credit else 0),
                 interest_rate=(interest_rate := contract.last_version.interest_rate),
                 interest_type=(interest_type := contract.last_version.interest_type),
                 relative_interest_rate=interest_rate * fraction,

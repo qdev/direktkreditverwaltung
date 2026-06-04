@@ -481,7 +481,10 @@ class ExportTransferView(generic.View):
     def get(request, *args, **kwargs):
         EXPENSE_ACCOUNT_ID = "2 Neutrale Aufwendungen:21 Zinsaufwand:21100 Zinsaufwand Privatdarlehen"
         CHARGE_OFF_ACCOUNT_ID = "1 Finanzkonten:14 Verbindlichkeiten:14200 Verbindlichkeiten aus Direktdarlehen"
-        year = int(kwargs.get('pk'))
+        try:
+            year = int(kwargs.get('pk'))
+        except (ValueError, TypeError):
+            return HttpResponse("Invalid year", status=400)
         contracts = Contract.objects.prefetch_related('contact').filter(Q(terminated_at__isnull=True) | Q(terminated_at__year__gt=year - 1)).order_by('contact__number', 'number')
         response = HttpResponse(content_type="text/csv", headers={"Content-Disposition": 'attachment; filename="export.csv"'}) if "file" in request.GET else HttpResponse(content_type="text")
         writer = csv.writer(response, quoting=csv.QUOTE_ALL)

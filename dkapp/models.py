@@ -14,6 +14,14 @@ from dkapp.operations.interest import days360_eu
 logger = logging.getLogger(__name__)
 
 
+class InflationRate(models.Model):
+    year = models.IntegerField(unique=True)
+    rate = models.DecimalField(max_digits=7, decimal_places=6)
+
+    def __str__(self):
+        return f"{self.year}: {self.rate * 100}%"
+
+
 class Contact(models.Model):
     number = models.IntegerField()
     last_name = models.CharField(max_length=200)
@@ -68,6 +76,10 @@ class Contract(models.Model):
 
     @property
     def balance(self):
+        # The account balance consists of the sum of all payments (balance_on)
+        # plus the accrued interest from previous years (prev_interest).
+        # Note: For contracts with compound interest, prev_interest calculates
+        # the interest that has already been added to the principal in previous years.
         return self.balance_on(timezone.now().date()) + self.prev_interest(timezone.now().date())
 
     def balance_on(self, date):
@@ -79,35 +91,26 @@ class Contract(models.Model):
         )['amount__sum'] or Decimal('0')
 
     def infla_limit(self, rate, year):
-        infla_dict = {
-            2013: 0.0200,
-            2014: 0.0090,
-            2015: 0.0024,
-            2016: 0.0049,
-            2017: 0.0177,
-            2018: 0.0190,
-            2019: 0.0140,
-            2020: 0.0047,
-            2021: 0.0310,
-            2022: 0.0790,
-            2023: 0.0500,
-        }
-        return float(min(rate, infla_dict[year]) if year in infla_dict else rate)
+        try:
+            inflation = InflationRate.objects.get(year=year)
+            return min(Decimal(rate), inflation.rate)
+        except InflationRate.DoesNotExist:
+            return Decimal(rate)
 
     def add_fraction(self, d1, d2, amount, pa, rate, compound_interest, inflalimit, fractions):
         date = d1
         for d in range(d1.year, d2.year):
             days = days360_eu(date, datetime(d, 12, 31))
-            r = self.infla_limit(rate, d) if inflalimit else float(rate)
+            r = self.infla_limit(rate, d) if inflalimit else Decimal(rate)
             fractions.append((days, amount, r))
             if compound_interest:
-                amount += pa + amount * r * days / 360
-                pa = 0
+                amount += pa + amount * r * Decimal(days) / Decimal(360)
+                pa = Decimal(0)
             date = datetime(d, 12, 31)
         days = days360_eu(date, d2)
-        r = self.infla_limit(rate, d2.year) if inflalimit else float(rate)
+        r = self.infla_limit(rate, d2.year) if inflalimit else Decimal(rate)
         fractions.append((days, amount, r))
-        pa += amount * r * days / 360
+        pa += amount * r * Decimal(days) / Decimal(360)
         return amount, pa
 
     def prev_interest(self, until):
@@ -117,10 +120,10 @@ class Contract(models.Model):
         if not contractversions or contractversions[0].start.year > until.year:
             return Decimal(0)
 
-        amount = 0.0
-        interest_relevant = 0.0
-        pa = 0.0
-        rate = float(contractversions[0].interest_rate)
+        amount = Decimal(0)
+        interest_relevant = Decimal(0)
+        pa = Decimal(0)
+        rate = Decimal(contractversions[0].interest_rate)
         inflalimit = contractversions[0].interest_type.endswith(", Inflationlimit")
 
         year = contractversions[0].start.year
@@ -135,34 +138,30 @@ class Contract(models.Model):
                 amount, pa = self.add_fraction(date, contractversions[0].start, amount, pa, rate, compound_interest,
                                                inflalimit, fractions)
                 compound_interest = contractversions[0].interest_type.startswith("mit Zinseszins")
-                rate = float(contractversions[0].interest_rate)
+                rate = Decimal(contractversions[0].interest_rate)
                 inflalimit = contractversions[0].interest_type.endswith(", Inflationlimit")
                 date = contractversions.pop(0).start
             else:
                 amount, pa = self.add_fraction(date, accountingentries[0].date, amount, pa, rate, compound_interest,
                                                inflalimit, fractions)
-                amount += float(accountingentries[0].amount)
+                amount += Decimal(accountingentries[0].amount)
                 if accountingentries[0].interest_relevant:
-                    interest_relevant += float(accountingentries[0].amount)
+                    interest_relevant += Decimal(accountingentries[0].amount)
                 date = accountingentries.pop(0).date
 
         if date < until:
             self.add_fraction(date, until - timedelta(days=1), amount, pa, rate, compound_interest, inflalimit, fractions)
 
-
-        #print(
-        #    f"{self.contact.number:04d}-{self.number:02d}\n{fractions}\n{[x[0] * x[1] * float(x[2]) / 360 for x in fractions]} -> {sum([x[0] * x[1] * float(x[2]) / 360 for x in fractions])} + ({interest_relevant})\n")
-
-        r = sum([x[0] * x[1] * float(x[2]) / 360 for x in fractions]) + interest_relevant
-        return Decimal(0) if r == 0 else Decimal(r)
+        r = sum([Decimal(x[0]) * x[1] * x[2] / Decimal(360) for x in fractions]) + interest_relevant
+        return r.quantize(Decimal('0.01'))
 
     def versions_in(self, year):
         return self.contractversion_set.filter(start__year=year).order_by('start')
 
     def version_at(self, reference_date: date):
         current_version = self.first_version
-        sorted = self.contractversion_set.order_by('start').order_by('start')
-        for version in sorted:
+        sorted_versions = self.contractversion_set.order_by('start')
+        for version in sorted_versions:
             if version.start > reference_date:
                 return current_version
             current_version = version
@@ -196,8 +195,7 @@ class Contract(models.Model):
 
     @classmethod
     def total_sum(cls):
-        contracts = cls.objects.all()
-        return sum([contract.balance for contract in contracts])
+        return sum([contract.balance for contract in cls.objects.all()])
 
 
 class ContractVersion(models.Model):
